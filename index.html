@@ -1259,13 +1259,22 @@
       </button>
     </div>
 
-    <p class="text-[11px] text-slate-500 pt-3 shrink-0">Tendencias reales de tecnología e innovación en el mundo, traducidas al español, para inspirar nuevas iniciativas. Elige una y conviértela en idea con un clic.</p>
+    <p class="text-[11px] text-slate-500 pt-3 shrink-0">Tendencias del mes en curso, en español, sobre posibles iniciativas aplicables al banco. Elige una y conviértela en idea con un clic.</p>
 
     <div class="flex gap-2 pt-3 shrink-0">
-      <input type="text" id="trendsSearchInput" value="fintech" placeholder="Ej. fintech, IA, pagos..." class="flex-1 min-w-0 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+      <input type="text" id="trendsSearchInput" value="banca digital" placeholder="Ej. banca digital, pagos, créditos..." class="flex-1 min-w-0 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
       <button id="trendsSearchBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition shrink-0">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
+    </div>
+
+    <div class="flex flex-wrap gap-1.5 pt-2.5 shrink-0">
+      <button type="button" onclick="quickSearchTrends('banca digital')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Banca digital</button>
+      <button type="button" onclick="quickSearchTrends('pagos')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Pagos</button>
+      <button type="button" onclick="quickSearchTrends('créditos')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Créditos</button>
+      <button type="button" onclick="quickSearchTrends('IA en banca')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">IA en banca</button>
+      <button type="button" onclick="quickSearchTrends('ciberseguridad')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Ciberseguridad</button>
+      <button type="button" onclick="quickSearchTrends('banca abierta')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Banca abierta</button>
     </div>
 
     <div id="trendsResultsList" class="flex-1 overflow-y-auto py-4 space-y-2.5">
@@ -2788,6 +2797,31 @@
       }
     }
 
+    // El contenido fuente está en inglés, así que la búsqueda en español se traduce
+    // antes de consultar (misma lógica inversa que translateToSpanish).
+    async function translateToEnglish(text) {
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        return data[0].map(chunk => chunk[0]).join('');
+      } catch (err) {
+        console.error('Error traduciendo búsqueda:', err);
+        return text;
+      }
+    }
+
+    function getStartOfCurrentMonthTimestamp() {
+      const now = new Date();
+      return Math.floor(new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000);
+    }
+
+    window.quickSearchTrends = function(term) {
+      document.getElementById('trendsSearchInput').value = term;
+      searchTrends(term);
+    };
+
     async function searchTrends(query) {
       const list = document.getElementById('trendsResultsList');
       const searchBtn = document.getElementById('trendsSearchBtn');
@@ -2803,18 +2837,23 @@
       list.innerHTML = `
         <div class="text-center text-xs text-slate-500 py-8 flex flex-col items-center gap-2">
           <i class="fa-solid fa-circle-notch fa-spin text-emerald-400"></i>
-          Buscando tendencias para "${escapeHtml(term)}"...
+          Buscando tendencias del mes para "${escapeHtml(term)}"...
         </div>
       `;
 
       try {
-        const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(term)}&tags=story&hitsPerPage=12`;
+        const searchTermEn = await translateToEnglish(term);
+        if (requestId !== trendsRequestId) return;
+
+        const startOfMonth = getStartOfCurrentMonthTimestamp();
+        const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(searchTermEn)}&tags=story&numericFilters=created_at_i%3E${startOfMonth}&hitsPerPage=12`;
         const response = await fetch(url);
         if (requestId !== trendsRequestId) return; // llegó una búsqueda más nueva mientras esperábamos
         if (!response.ok) throw new Error('HTTP ' + response.status);
 
         const data = await response.json();
-        const hits = (data.hits || []).filter(h => h.title);
+        // "Ask HN" son preguntas de discusión, no tendencias/iniciativas concretas — se excluyen.
+        const hits = (data.hits || []).filter(h => h.title && !/^Ask HN:/i.test(h.title));
 
         list.innerHTML = `
           <div class="text-center text-xs text-slate-500 py-8 flex flex-col items-center gap-2">
@@ -2850,7 +2889,7 @@
       const list = document.getElementById('trendsResultsList');
 
       if (hits.length === 0) {
-        list.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">Sin resultados para "${escapeHtml(term)}". Prueba con otra palabra clave.</div>`;
+        list.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">Sin resultados este mes para "${escapeHtml(term)}". Prueba con otra palabra clave o uno de los temas sugeridos.</div>`;
         return;
       }
 
