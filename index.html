@@ -1259,26 +1259,47 @@
       </button>
     </div>
 
-    <p class="text-[11px] text-slate-500 pt-3 shrink-0">Tendencias del mes en curso, en español, sobre posibles iniciativas aplicables al banco. Elige una y conviértela en idea con un clic.</p>
-
-    <div class="flex gap-2 pt-3 shrink-0">
-      <input type="text" id="trendsSearchInput" value="banca digital" placeholder="Ej. banca digital, pagos, créditos..." class="flex-1 min-w-0 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-      <button id="trendsSearchBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition shrink-0">
-        <i class="fa-solid fa-magnifying-glass"></i>
+    <!-- Selector de Pestañas: En Vivo vs Catálogo Curado -->
+    <div class="flex items-center gap-1 pt-3 shrink-0 border-b border-slate-800">
+      <button id="trendsTabLiveBtn" type="button" class="px-3 py-2 text-xs font-semibold border-b-2 border-emerald-400 text-emerald-300 transition">
+        <i class="fa-solid fa-bolt mr-1"></i>En Vivo
+      </button>
+      <button id="trendsTabCatalogBtn" type="button" class="px-3 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-building-columns mr-1"></i>Catálogo Bancario
       </button>
     </div>
 
-    <div class="flex flex-wrap gap-1.5 pt-2.5 shrink-0">
-      <button type="button" onclick="quickSearchTrends('banca digital')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Banca digital</button>
-      <button type="button" onclick="quickSearchTrends('pagos')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Pagos</button>
-      <button type="button" onclick="quickSearchTrends('créditos')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Créditos</button>
-      <button type="button" onclick="quickSearchTrends('IA en banca')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">IA en banca</button>
-      <button type="button" onclick="quickSearchTrends('ciberseguridad')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Ciberseguridad</button>
-      <button type="button" onclick="quickSearchTrends('banca abierta')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Banca abierta</button>
+    <!-- Pestaña: Búsqueda en Vivo -->
+    <div id="trendsTabLiveContent" class="flex-1 min-h-0 flex flex-col">
+      <p class="text-[11px] text-slate-500 pt-3 shrink-0">Tendencias del mes en curso, en español, sobre posibles iniciativas aplicables al banco. Elige una y conviértela en idea con un clic.</p>
+
+      <div class="flex gap-2 pt-3 shrink-0">
+        <input type="text" id="trendsSearchInput" value="banca digital" placeholder="Ej. banca digital, pagos, créditos..." class="flex-1 min-w-0 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+        <button id="trendsSearchBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition shrink-0">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+
+      <div class="flex flex-wrap gap-1.5 pt-2.5 shrink-0">
+        <button type="button" onclick="quickSearchTrends('banca digital')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Banca digital</button>
+        <button type="button" onclick="quickSearchTrends('pagos')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Pagos</button>
+        <button type="button" onclick="quickSearchTrends('créditos')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Créditos</button>
+        <button type="button" onclick="quickSearchTrends('IA en banca')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">IA en banca</button>
+        <button type="button" onclick="quickSearchTrends('ciberseguridad')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Ciberseguridad</button>
+        <button type="button" onclick="quickSearchTrends('banca abierta')" class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Banca abierta</button>
+      </div>
+
+      <div id="trendsResultsList" class="flex-1 overflow-y-auto py-4 space-y-2.5">
+        <!-- Resultados renderizados dinámicamente mediante JS -->
+      </div>
     </div>
 
-    <div id="trendsResultsList" class="flex-1 overflow-y-auto py-4 space-y-2.5">
-      <!-- Resultados renderizados dinámicamente mediante JS -->
+    <!-- Pestaña: Catálogo Curado de Innovación Bancaria -->
+    <div id="trendsTabCatalogContent" class="hidden flex-1 min-h-0 flex flex-col">
+      <p class="text-[11px] text-slate-500 pt-3 shrink-0">Funcionalidades reales que ya lanzaron bancos y fintechs líderes en el mundo — para inspirar directamente productos y servicios aplicables a la app o web del banco.</p>
+      <div id="catalogResultsList" class="flex-1 overflow-y-auto py-4 space-y-2.5">
+        <!-- Renderizado dinámicamente mediante JS -->
+      </div>
     </div>
   </div>
 
@@ -2822,6 +2843,85 @@
       searchTrends(term);
     };
 
+    // Catálogo curado: funcionalidades reales ya lanzadas por bancos/fintechs líderes,
+    // pensado para dar señal de producto concreta (algo que la búsqueda en vivo genérica
+    // de Hacker News no logra para un banco). No es un feed en vivo, es contenido fijo.
+    const BANKING_INNOVATION_CATALOG = [
+      { id: 'cat-1', title: 'Límite de tarjeta virtual ajustable en tiempo real', bank: 'Nubank (Brasil)', description: 'El cliente sube o baja el cupo de su tarjeta virtual al instante desde la app, por compra puntual o por periodo, sin llamar al banco.' },
+      { id: 'cat-2', title: 'Ahorro automático por redondeo con metas compartidas', bank: 'Revolut (Reino Unido)', description: '"Vaults": cada compra se redondea y la diferencia va a una meta de ahorro, que puede compartirse y aportar en conjunto con otras personas.' },
+      { id: 'cat-3', title: 'Coach financiero con IA y alertas de salud financiera', bank: 'BBVA (España/LatAm)', description: 'La app analiza los movimientos del cliente y envía alertas proactivas (gasto inusual, posible sobregiro, oportunidad de ahorro) antes de que sean un problema.' },
+      { id: 'cat-4', title: 'Asistente virtual conversacional dentro de la app', bank: 'Bank of America (EE.UU.)', description: '"Erica": asistente con IA que responde preguntas sobre la cuenta, ayuda a encontrar transacciones y da recomendaciones financieras por chat o voz.' },
+      { id: 'cat-5', title: 'Super app con marketplace de servicios de terceros', bank: 'DBS Bank (Singapur)', description: 'Además de banca, la app integra servicios de terceros (viajes, e-commerce, servicios del hogar) para que el cliente resuelva más cosas sin salir de la app.' },
+      { id: 'cat-6', title: 'Alertas de gasto en tiempo real por categoría', bank: 'Monzo (Reino Unido)', description: 'Notificación push inmediata al pagar, mostrando en qué categoría de gasto quedó registrada la compra y cuánto lleva gastado ese mes en esa categoría.' },
+      { id: 'cat-7', title: 'Adelanto de sueldo sin intereses (Earned Wage Access)', bank: 'Chime (EE.UU.)', description: 'El cliente accede a parte de su sueldo ya devengado antes del día de pago formal, sin intereses ni comisiones tipo crédito de consumo.' },
+      { id: 'cat-8', title: 'Compra ahora, paga después integrado en el checkout', bank: 'Klarna (Suecia)', description: 'Opción de fraccionar el pago de una compra en cuotas sin interés directamente en el momento de pagar, integrado como método de pago más.' },
+      { id: 'cat-9', title: 'Subcuentas de ahorro compartidas en familia', bank: 'N26 (Alemania)', description: '"Spaces": subcuentas dentro de la misma cuenta principal para metas específicas (vacaciones, arriendo), que se pueden compartir con familiares.' },
+      { id: 'cat-10', title: 'Marketplace de apps financieras dentro del banco', bank: 'Starling Bank (Reino Unido)', description: 'Catálogo de apps de terceros (inversión, seguros, contabilidad para pymes) que se conectan directo a la cuenta del cliente desde dentro del banco.' },
+      { id: 'cat-11', title: 'Transferencias internacionales a tasa de cambio real', bank: 'Wise (Reino Unido)', description: 'Transferencias entre países mostrando el tipo de cambio real (sin margen escondido) y el costo total por adelantado, antes de confirmar.' },
+      { id: 'cat-12', title: 'Metas de ahorro automatizadas con reglas personalizadas', bank: 'Ally Bank (EE.UU.)', description: '"Boosters": reglas configurables por el cliente para mover dinero a ahorro automáticamente (ej. redondeo, % del sueldo, ahorro recurrente fijo).' }
+    ];
+
+    function renderCatalogList() {
+      const list = document.getElementById('catalogResultsList');
+      list.innerHTML = BANKING_INNOVATION_CATALOG.map(item => `
+        <div class="glass-card p-3 rounded-xl border-l-2 border-emerald-500/60 space-y-1.5">
+          <h4 class="text-xs font-medium text-white leading-snug">${escapeHtml(item.title)}</h4>
+          <span class="text-[10px] text-emerald-400 font-semibold">${escapeHtml(item.bank)}</span>
+          <p class="text-[11px] text-slate-400 leading-relaxed">${escapeHtml(item.description)}</p>
+          <div class="flex justify-end pt-1">
+            <button onclick="convertCatalogToIdea('${item.id}')" type="button" class="px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition flex items-center gap-1">
+              <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> Convertir en idea
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.convertCatalogToIdea = function(itemId) {
+      const item = BANKING_INNOVATION_CATALOG.find(i => i.id === itemId);
+      if (!item) return;
+
+      const defaultNode = BRANCH_NODES[Math.floor(Math.random() * BRANCH_NODES.length)];
+      openCreateModal('spontaneous', defaultNode.id, defaultNode.anchorCorner);
+
+      document.getElementById('ideaTitleInput').value = item.title;
+      document.getElementById('ideaDescInput').value = `${item.description} (Ejemplo real de la industria: ${item.bank}. Evaluar cómo adaptarlo a nuestra app/web.)`;
+
+      document.getElementById('trendsDrawer').classList.add('translate-x-full');
+      showToast('Idea de catálogo cargada — revisa y publica la idea');
+    };
+
+    function switchTrendsTab(tab) {
+      const liveBtn = document.getElementById('trendsTabLiveBtn');
+      const catalogBtn = document.getElementById('trendsTabCatalogBtn');
+      const liveContent = document.getElementById('trendsTabLiveContent');
+      const catalogContent = document.getElementById('trendsTabCatalogContent');
+
+      const activeClasses = ['border-emerald-400', 'text-emerald-300'];
+      const inactiveClasses = ['border-transparent', 'text-slate-400'];
+
+      if (tab === 'catalog') {
+        liveBtn.classList.remove(...activeClasses);
+        liveBtn.classList.add(...inactiveClasses);
+        catalogBtn.classList.remove(...inactiveClasses);
+        catalogBtn.classList.add(...activeClasses);
+        liveContent.classList.add('hidden');
+        liveContent.classList.remove('flex');
+        catalogContent.classList.remove('hidden');
+        catalogContent.classList.add('flex');
+        renderCatalogList();
+      } else {
+        catalogBtn.classList.remove(...activeClasses);
+        catalogBtn.classList.add(...inactiveClasses);
+        liveBtn.classList.remove(...inactiveClasses);
+        liveBtn.classList.add(...activeClasses);
+        catalogContent.classList.add('hidden');
+        catalogContent.classList.remove('flex');
+        liveContent.classList.remove('hidden');
+        liveContent.classList.add('flex');
+      }
+    }
+
     async function searchTrends(query) {
       const list = document.getElementById('trendsResultsList');
       const searchBtn = document.getElementById('trendsSearchBtn');
@@ -3715,6 +3815,8 @@
           searchTrends(document.getElementById('trendsSearchInput').value);
         }
       });
+      document.getElementById('trendsTabLiveBtn').addEventListener('click', () => switchTrendsTab('live'));
+      document.getElementById('trendsTabCatalogBtn').addEventListener('click', () => switchTrendsTab('catalog'));
 
       // Datos para decisión: colapsar/expandir
       const toggleDecisionBtn = document.getElementById('toggleDecisionFieldsBtn');
