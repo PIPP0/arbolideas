@@ -285,7 +285,7 @@
       </div>
       <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
         <i class="fa-solid fa-heart text-rose-400"></i>
-        <span>Votos ❤️: <strong id="totalHeartsCount" class="text-white">0</strong></span>
+        <span>Me gusta ❤️: <strong id="totalHeartsCount" class="text-white">0</strong></span>
       </div>
     </div>
 
@@ -1915,11 +1915,11 @@
             </span>
 
             <div class="flex items-center gap-1">
-              <button onclick="voteIdea('${idea.id}', 'hearts', event)" type="button" title="${hasHeartVoted ? 'Quitar voto ❤️' : 'Votar ❤️'}" class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg transition group/btn border ${heartBtnStyle}">
+              <button onclick="voteIdea('${idea.id}', 'hearts', event)" type="button" title="${hasHeartVoted ? 'Quitar Me gusta' : 'Me gusta'}" class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg transition group/btn border ${heartBtnStyle}">
                 <i class="fa-solid fa-heart text-rose-500 text-[10px] group-hover/btn:scale-125 transition-transform"></i>
                 <span class="font-mono text-[10px] font-semibold">${idea.hearts}</span>
               </button>
-              <button onclick="voteIdea('${idea.id}', 'stars', event)" type="button" title="${hasStarVoted ? 'Quitar voto ⭐' : 'Votar ⭐'}" class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg transition group/btn border ${starBtnStyle}">
+              <button onclick="voteIdea('${idea.id}', 'stars', event)" type="button" title="${hasStarVoted ? 'Quitar Es factible' : 'Es factible'}" class="flex items-center gap-1 px-1.5 py-0.5 rounded-lg transition group/btn border ${starBtnStyle}">
                 <i class="fa-solid fa-star text-amber-400 text-[10px] group-hover/btn:scale-125 transition-transform"></i>
                 <span class="font-mono text-[10px] font-semibold">${idea.stars}</span>
               </button>
@@ -2113,11 +2113,11 @@
       if (alreadyVoted) {
         idea[type] = Math.max(0, (idea[type] || 0) - 1);
         userVotes[id][type] = false;
-        showToast(`Eliminaste tu voto (${type === 'hearts' ? '❤️' : '⭐'})`);
+        showToast(type === 'hearts' ? 'Quitaste tu "Me gusta" ❤️' : 'Quitaste tu voto de "Es factible" ⭐');
       } else {
         idea[type] = (idea[type] || 0) + 1;
         userVotes[id][type] = true;
-        showToast(`¡Voto registrado! (${type === 'hearts' ? '❤️' : '⭐'})`);
+        showToast(type === 'hearts' ? '¡Te gusta esta idea! ❤️' : '¡Marcada como factible! ⭐');
       }
 
       const btn = event ? event.currentTarget : null;
@@ -2177,8 +2177,8 @@
               <h4 class="font-medium text-xs text-white truncate">${escapeHtml(idea.title)}</h4>
               <p class="text-[10px] text-slate-400 truncate mt-0.5">${escapeHtml(idea.author)}</p>
               <div class="flex items-center gap-3 mt-2 text-[10px] text-slate-300">
-                <span class="flex items-center gap-1 text-rose-400"><i class="fa-solid fa-heart"></i> ${idea.hearts}</span>
-                <span class="flex items-center gap-1 text-amber-400"><i class="fa-solid fa-star"></i> ${idea.stars}</span>
+                <span class="flex items-center gap-1 text-rose-400" title="Me gusta"><i class="fa-solid fa-heart"></i> ${idea.hearts}</span>
+                <span class="flex items-center gap-1 text-amber-400" title="Es factible"><i class="fa-solid fa-star"></i> ${idea.stars}</span>
                 <span class="text-slate-500 ml-auto font-semibold">${totalVotes} pts</span>
               </div>
             </div>
