@@ -418,6 +418,25 @@
               <stop offset="0%" stop-color="#1e293b" />
               <stop offset="100%" stop-color="#020617" />
             </linearGradient>
+
+            <radialGradient id="rabbitFurGrad" cx="35%" cy="25%" r="80%">
+              <stop offset="0%" stop-color="#fffbeb" />
+              <stop offset="55%" stop-color="#fef08a" />
+              <stop offset="100%" stop-color="#eab308" />
+            </radialGradient>
+            <radialGradient id="rabbitFurGradSoft" cx="40%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="#fffde8" />
+              <stop offset="60%" stop-color="#fef9c3" />
+              <stop offset="100%" stop-color="#f5cc4d" />
+            </radialGradient>
+            <radialGradient id="rabbitEarInnerGrad" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#fda4af" />
+              <stop offset="100%" stop-color="#e11d48" />
+            </radialGradient>
+            <radialGradient id="rabbitCheekGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fb7185" stop-opacity="0.55" />
+              <stop offset="100%" stop-color="#fb7185" stop-opacity="0" />
+            </radialGradient>
           </defs>
 
           <!-- Base de Tierra y Raíces -->
@@ -479,71 +498,121 @@
             </g>
 
             <!-- Conejo Animado Fluido de Esquina a Esquina bajo el Árbol -->
-            <g id="treeBaseRabbit" transform="translate(700, 835)" filter="url(#glow)">
+            <g id="treeBaseRabbit" transform="translate(700, 835)">
               <style>
-                /* Recorrido Fluido de Esquina a Esquina (-280px a +280px) con Pausa para Mirar a la Cámara */
-                @keyframes rabbitSideHopFull {
-                  /* Inicio en Esquina Izquierda (-280px) */
-                  0% { transform: translate(-280px, 0px) scaleX(1) scaleY(1); }
+                /* Recorrido horizontal (solo X + espejado) - velocidad de avance ~constante en el aire */
+                @keyframes rabbitHopX {
+                  0% { transform: translateX(-280px) scaleX(1); }
+                  3% { transform: translateX(-235px) scaleX(1); }
+                  6% { transform: translateX(-190px) scaleX(1); }
+                  8% { transform: translateX(-190px) scaleX(1); }
+                  11% { transform: translateX(-142px) scaleX(1); }
+                  14% { transform: translateX(-95px) scaleX(1); }
+                  16% { transform: translateX(-95px) scaleX(1); }
+                  19% { transform: translateX(-48px) scaleX(1); }
+                  22% { transform: translateX(0px) scaleX(1); }
+                  24% { transform: translateX(0px) scaleX(1); }
+                  38% { transform: translateX(0px) scaleX(1); }
+                  41% { transform: translateX(48px) scaleX(1); }
+                  44% { transform: translateX(95px) scaleX(1); }
+                  46% { transform: translateX(95px) scaleX(1); }
+                  49% { transform: translateX(142px) scaleX(1); }
+                  52% { transform: translateX(190px) scaleX(1); }
+                  54% { transform: translateX(190px) scaleX(1); }
+                  57% { transform: translateX(235px) scaleX(1); }
+                  60% { transform: translateX(280px) scaleX(1); }
+                  62%, 64% { transform: translateX(280px) scaleX(1); }
+                  65% { transform: translateX(280px) scaleX(-1); }
+                  68% { transform: translateX(235px) scaleX(-1); }
+                  71% { transform: translateX(190px) scaleX(-1); }
+                  73% { transform: translateX(190px) scaleX(-1); }
+                  76% { transform: translateX(142px) scaleX(-1); }
+                  79% { transform: translateX(95px) scaleX(-1); }
+                  81% { transform: translateX(95px) scaleX(-1); }
+                  84% { transform: translateX(48px) scaleX(-1); }
+                  87% { transform: translateX(0px) scaleX(-1); }
+                  88% { transform: translateX(0px) scaleX(-1); }
+                  94% { transform: translateX(0px) scaleX(-1); }
+                  97% { transform: translateX(-140px) scaleX(-1); }
+                  99% { transform: translateX(-280px) scaleX(-1); }
+                  100% { transform: translateX(-280px) scaleX(1); }
+                }
 
-                  /* Salto 1 a la derecha */
-                  3% { transform: translate(-235px, -24px) scaleX(1) scaleY(1.12); }
-                  6% { transform: translate(-190px, 0px) scaleX(1) scaleY(0.88); }
-                  8% { transform: translate(-190px, 0px) scaleX(1) scaleY(1); }
+                /* Rebote vertical (Y + aplaste/estiramiento + inclinación) con física real:
+                   sube frenando (ease-out) y cae acelerando (ease-in), fotograma a fotograma */
+                @keyframes rabbitHopBounce {
+                  0% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  3% { transform: translateY(-24px) scaleY(1.14) rotate(-5deg); animation-timing-function: ease-in; }
+                  6% { transform: translateY(0px) scaleY(0.86) rotate(3deg); animation-timing-function: ease-out; }
+                  8% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  11% { transform: translateY(-27px) scaleY(1.16) rotate(-5deg); animation-timing-function: ease-in; }
+                  14% { transform: translateY(0px) scaleY(0.84) rotate(3deg); animation-timing-function: ease-out; }
+                  16% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  19% { transform: translateY(-26px) scaleY(1.14) rotate(-5deg); animation-timing-function: ease-in; }
+                  22% { transform: translateY(0px) scaleY(0.86) rotate(3deg); animation-timing-function: ease-out; }
+                  24% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  38% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  41% { transform: translateY(-26px) scaleY(1.14) rotate(5deg); animation-timing-function: ease-in; }
+                  44% { transform: translateY(0px) scaleY(0.86) rotate(-3deg); animation-timing-function: ease-out; }
+                  46% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  49% { transform: translateY(-27px) scaleY(1.16) rotate(5deg); animation-timing-function: ease-in; }
+                  52% { transform: translateY(0px) scaleY(0.84) rotate(-3deg); animation-timing-function: ease-out; }
+                  54% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  57% { transform: translateY(-24px) scaleY(1.14) rotate(5deg); animation-timing-function: ease-in; }
+                  60% { transform: translateY(0px) scaleY(0.86) rotate(-3deg); animation-timing-function: ease-out; }
+                  62%, 64% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  65% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  68% { transform: translateY(-24px) scaleY(1.14) rotate(-5deg); animation-timing-function: ease-in; }
+                  71% { transform: translateY(0px) scaleY(0.86) rotate(3deg); animation-timing-function: ease-out; }
+                  73% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  76% { transform: translateY(-27px) scaleY(1.16) rotate(-5deg); animation-timing-function: ease-in; }
+                  79% { transform: translateY(0px) scaleY(0.84) rotate(3deg); animation-timing-function: ease-out; }
+                  81% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  84% { transform: translateY(-26px) scaleY(1.14) rotate(-5deg); animation-timing-function: ease-in; }
+                  87% { transform: translateY(0px) scaleY(0.86) rotate(3deg); animation-timing-function: ease-out; }
+                  88% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  94% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                  97% { transform: translateY(-26px) scaleY(1.14) rotate(-5deg); animation-timing-function: ease-in; }
+                  99% { transform: translateY(0px) scaleY(0.86) rotate(3deg); animation-timing-function: ease-out; }
+                  100% { transform: translateY(0px) scaleY(1) rotate(0deg); }
+                }
 
-                  /* Salto 2 a la derecha */
-                  11% { transform: translate(-142px, -26px) scaleX(1) scaleY(1.14); }
-                  14% { transform: translate(-95px, 0px) scaleX(1) scaleY(0.86); }
-                  16% { transform: translate(-95px, 0px) scaleX(1) scaleY(1); }
-
-                  /* Salto 3 al Centro (0px) */
-                  19% { transform: translate(-48px, -25px) scaleX(1) scaleY(1.12); }
-                  22% { transform: translate(0px, 0px) scaleX(1) scaleY(0.88); }
-                  24% { transform: translate(0px, 0px) scaleX(1) scaleY(1); }
-
-                  /* PAUSA EN EL CENTRO: Mira a la cámara por unos segundos (24% - 38%) */
-                  38% { transform: translate(0px, 0px) scaleX(1) scaleY(1); }
-
-                  /* Salto 4 hacia la Esquina Derecha */
-                  41% { transform: translate(48px, -25px) scaleX(1) scaleY(1.12); }
-                  44% { transform: translate(95px, 0px) scaleX(1) scaleY(0.88); }
-                  46% { transform: translate(95px, 0px) scaleX(1) scaleY(1); }
-
-                  /* Salto 5 */
-                  49% { transform: translate(142px, -26px) scaleX(1) scaleY(1.14); }
-                  52% { transform: translate(190px, 0px) scaleX(1) scaleY(0.86); }
-                  54% { transform: translate(190px, 0px) scaleX(1) scaleY(1); }
-
-                  /* Salto 6 hasta Esquina Derecha (+280px) */
-                  57% { transform: translate(235px, -24px) scaleX(1) scaleY(1.12); }
-                  60% { transform: translate(280px, 0px) scaleX(1) scaleY(0.88); }
-                  62%, 64% { transform: translate(280px, 0px) scaleX(1) scaleY(1); }
-
-                  /* GIRO HACIA LA IZQUIERDA en la esquina derecha */
-                  65% { transform: translate(280px, 0px) scaleX(-1) scaleY(1); }
-
-                  /* Regreso: Salto 1 hacia el centro */
-                  68% { transform: translate(235px, -24px) scaleX(-1) scaleY(1.12); }
-                  71% { transform: translate(190px, 0px) scaleX(-1) scaleY(0.88); }
-                  73% { transform: translate(190px, 0px) scaleX(-1) scaleY(1); }
-
-                  /* Regreso: Salto 2 */
-                  76% { transform: translate(142px, -26px) scaleX(-1) scaleY(1.14); }
-                  79% { transform: translate(95px, 0px) scaleX(-1) scaleY(0.86); }
-                  81% { transform: translate(95px, 0px) scaleX(-1) scaleY(1); }
-
-                  /* Regreso: Salto 3 al Centro (0px) */
-                  84% { transform: translate(48px, -25px) scaleX(-1) scaleY(1.12); }
-                  87% { transform: translate(0px, 0px) scaleX(-1) scaleY(0.88); }
-                  88% { transform: translate(0px, 0px) scaleX(-1) scaleY(1); }
-
-                  /* PAUSA EN EL CENTRO DE REGRESO: Vuelve a mirar a la cámara (88% - 94%) */
-                  94% { transform: translate(0px, 0px) scaleX(-1) scaleY(1); }
-
-                  /* Salto final hacia Esquina Izquierda (-280px) */
-                  97% { transform: translate(-140px, -25px) scaleX(-1) scaleY(1.12); }
-                  99% { transform: translate(-280px, 0px) scaleX(-1) scaleY(0.88); }
-                  100% { transform: translate(-280px, 0px) scaleX(1) scaleY(1); }
+                /* Sombra de contacto: se achica y se desvanece en el aire, vuelve al tocar el suelo */
+                @keyframes rabbitShadowPulse {
+                  0% { transform: scale(1); opacity: 0.55; }
+                  3% { transform: scale(0.5); opacity: 0.18; }
+                  6% { transform: scale(0.88); opacity: 0.45; }
+                  8% { transform: scale(1); opacity: 0.55; }
+                  11% { transform: scale(0.46); opacity: 0.16; }
+                  14% { transform: scale(0.9); opacity: 0.46; }
+                  16% { transform: scale(1); opacity: 0.55; }
+                  19% { transform: scale(0.5); opacity: 0.18; }
+                  22% { transform: scale(0.88); opacity: 0.45; }
+                  24% { transform: scale(1); opacity: 0.55; }
+                  38% { transform: scale(1); opacity: 0.55; }
+                  41% { transform: scale(0.5); opacity: 0.18; }
+                  44% { transform: scale(0.88); opacity: 0.45; }
+                  46% { transform: scale(1); opacity: 0.55; }
+                  49% { transform: scale(0.46); opacity: 0.16; }
+                  52% { transform: scale(0.9); opacity: 0.46; }
+                  54% { transform: scale(1); opacity: 0.55; }
+                  57% { transform: scale(0.5); opacity: 0.18; }
+                  60% { transform: scale(0.88); opacity: 0.45; }
+                  62%, 64% { transform: scale(1); opacity: 0.55; }
+                  65% { transform: scale(1); opacity: 0.55; }
+                  68% { transform: scale(0.5); opacity: 0.18; }
+                  71% { transform: scale(0.88); opacity: 0.45; }
+                  73% { transform: scale(1); opacity: 0.55; }
+                  76% { transform: scale(0.46); opacity: 0.16; }
+                  79% { transform: scale(0.9); opacity: 0.46; }
+                  81% { transform: scale(1); opacity: 0.55; }
+                  84% { transform: scale(0.5); opacity: 0.18; }
+                  87% { transform: scale(0.88); opacity: 0.45; }
+                  88% { transform: scale(1); opacity: 0.55; }
+                  94% { transform: scale(1); opacity: 0.55; }
+                  97% { transform: scale(0.5); opacity: 0.18; }
+                  99% { transform: scale(0.88); opacity: 0.45; }
+                  100% { transform: scale(1); opacity: 0.55; }
                 }
 
                 /* Visibilidad del Rostro Frontal al Mirar a la Cámara */
@@ -576,7 +645,15 @@
                 }
 
                 .anim-rabbit-master {
-                  animation: rabbitSideHopFull 18s infinite cubic-bezier(0.4, 0, 0.6, 1);
+                  animation: rabbitHopX 18s infinite linear;
+                  transform-origin: 20px 25px;
+                }
+                .anim-rabbit-shadow {
+                  animation: rabbitShadowPulse 18s infinite ease-out;
+                  transform-origin: 16px 34px;
+                }
+                .anim-rabbit-bounce {
+                  animation: rabbitHopBounce 18s infinite ease-out;
                   transform-origin: 20px 25px;
                 }
                 .anim-head-side {
@@ -596,72 +673,76 @@
               </style>
 
               <g class="anim-rabbit-master">
-                <!-- Sombra Dinámica en el Suelo -->
-                <ellipse cx="16" cy="34" rx="18" ry="4" fill="#020617" opacity="0.6" />
+                <!-- Sombra de Contacto (fija al plano del suelo, no rebota con el cuerpo) -->
+                <ellipse class="anim-rabbit-shadow" cx="16" cy="34" rx="18" ry="4" fill="#020617" />
 
-                <!-- Cola de Algodón -->
-                <circle cx="-1" cy="24" r="5" fill="#ffffff" opacity="0.9" />
-                <circle cx="-1" cy="24" r="3.5" fill="#fef08a" opacity="0.6" />
+                <g class="anim-rabbit-bounce">
+                  <!-- Cola de Algodón -->
+                  <circle cx="-1" cy="24" r="5" fill="#ffffff" opacity="0.9" />
+                  <circle cx="-1" cy="24" r="3.5" fill="url(#rabbitFurGradSoft)" opacity="0.75" />
 
-                <!-- Cuerpo y Muslo Trasero -->
-                <path d="M 4 20 Q 2 30 14 33 Q 26 34 28 26 Q 28 18 16 16 Z" fill="#fef08a" />
-                <ellipse cx="10" cy="26" rx="9" ry="7" fill="#f59e0b" opacity="0.35" />
+                  <!-- Cuerpo y Muslo Trasero -->
+                  <path d="M 4 20 Q 2 30 14 33 Q 26 34 28 26 Q 28 18 16 16 Z" fill="url(#rabbitFurGrad)" stroke="#b45309" stroke-width="0.5" stroke-opacity="0.3" />
+                  <ellipse cx="11" cy="27" rx="8" ry="6" fill="#c2660b" opacity="0.25" />
+                  <ellipse cx="9" cy="19" rx="6" ry="2.4" fill="#ffffff" opacity="0.3" transform="rotate(-14 9 19)" />
 
-                <!-- Patas -->
-                <ellipse cx="14" cy="32" rx="7" ry="2.5" fill="#fef08a" />
-                <path d="M 23 27 Q 24 33 22 34" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round" />
+                  <!-- Patas -->
+                  <ellipse cx="14" cy="32" rx="7" ry="2.5" fill="url(#rabbitFurGradSoft)" />
+                  <path d="M 23 27 Q 24 33 22 34" stroke="#eab308" stroke-width="2.5" stroke-linecap="round" />
 
-                <!-- CABEZA DE PERFIL (visible mientras avanza) -->
-                <g class="anim-head-side">
-                  <circle cx="26" cy="15" r="7.5" fill="#fef08a" />
-                  <ellipse cx="29" cy="17" rx="4.5" ry="3.5" fill="#ffffff" opacity="0.8" />
+                  <!-- CABEZA DE PERFIL (visible mientras avanza) -->
+                  <g class="anim-head-side">
+                    <circle cx="26" cy="15" r="7.5" fill="url(#rabbitFurGrad)" stroke="#b45309" stroke-width="0.4" stroke-opacity="0.25" />
+                    <ellipse cx="29" cy="17" rx="4.5" ry="3.5" fill="#ffffff" opacity="0.85" />
+                    <ellipse cx="24" cy="12" rx="2.6" ry="1.6" fill="#ffffff" opacity="0.35" transform="rotate(-20 24 12)" />
 
-                  <!-- Orejas de Perfil -->
-                  <g class="anim-rabbit-ears">
-                    <path d="M 23 10 Q 18 -6 23 -7 Q 27 -6 25 10 Z" fill="#fef08a" />
-                    <path d="M 23.5 8 Q 19.5 -4 23 -5 Q 26 -4 24.5 8 Z" fill="#f43f5e" opacity="0.5" />
+                    <!-- Orejas de Perfil -->
+                    <g class="anim-rabbit-ears">
+                      <path d="M 23 10 Q 18 -6 23 -7 Q 27 -6 25 10 Z" fill="url(#rabbitFurGrad)" />
+                      <path d="M 23.5 8 Q 19.5 -4 23 -5 Q 26 -4 24.5 8 Z" fill="url(#rabbitEarInnerGrad)" opacity="0.9" />
 
-                    <path d="M 26 10 Q 25 -5 29 -6 Q 32 -5 28 10 Z" fill="#fef08a" />
-                    <path d="M 26.5 8 Q 26 -3 29 -4 Q 31 -3 27.5 8 Z" fill="#f43f5e" opacity="0.5" />
+                      <path d="M 26 10 Q 25 -5 29 -6 Q 32 -5 28 10 Z" fill="url(#rabbitFurGrad)" />
+                      <path d="M 26.5 8 Q 26 -3 29 -4 Q 31 -3 27.5 8 Z" fill="url(#rabbitEarInnerGrad)" opacity="0.9" />
+                    </g>
+
+                    <!-- Ojo Lateral y Hocico -->
+                    <circle cx="27.5" cy="13.5" r="1.3" fill="#0f172a" />
+                    <circle cx="27.8" cy="13" r="0.4" fill="#ffffff" />
+                    <polygon points="31.5,16.5 33,16 32,17.5" fill="#f43f5e" class="anim-rabbit-nose-twitch" />
+                    <path d="M 31 18 L 36 17 M 31 18.5 L 35 19.5" stroke="#ffffff" stroke-width="0.6" opacity="0.7" stroke-linecap="round" />
                   </g>
 
-                  <!-- Ojo Lateral y Hocico -->
-                  <circle cx="27.5" cy="13.5" r="1.3" fill="#0f172a" />
-                  <circle cx="27.8" cy="13" r="0.4" fill="#ffffff" />
-                  <polygon points="31.5,16.5 33,16 32,17.5" fill="#f43f5e" class="anim-rabbit-nose-twitch" />
-                  <path d="M 31 18 L 36 17 M 31 18.5 L 35 19.5" stroke="#ffffff" stroke-width="0.6" opacity="0.7" stroke-linecap="round" />
-                </g>
+                  <!-- CABEZA DE FRENTE / MIRANDO A LA CÁMARA (visible durante la pausa central) -->
+                  <g class="anim-head-front">
+                    <circle cx="20" cy="14" r="8" fill="url(#rabbitFurGrad)" stroke="#b45309" stroke-width="0.4" stroke-opacity="0.25" />
+                    <ellipse cx="20" cy="17" rx="5" ry="3.5" fill="#ffffff" opacity="0.9" />
+                    <ellipse cx="17" cy="10" rx="3" ry="1.8" fill="#ffffff" opacity="0.35" transform="rotate(-16 17 10)" />
 
-                <!-- CABEZA DE FRENTE / MIRANDO A LA CÁMARA (visible durante la pausa central) -->
-                <g class="anim-head-front">
-                  <circle cx="20" cy="14" r="8" fill="#fef08a" />
-                  <ellipse cx="20" cy="17" rx="5" ry="3.5" fill="#ffffff" opacity="0.9" />
+                    <!-- Orejas de Frente Alerta -->
+                    <g class="anim-rabbit-ears">
+                      <path d="M 15 8 Q 10 -9 15 -10 Q 19 -9 18 8 Z" fill="url(#rabbitFurGrad)" />
+                      <path d="M 15 6 Q 12 -6 15 -7 Q 17 -6 16.5 6 Z" fill="url(#rabbitEarInnerGrad)" opacity="0.9" />
 
-                  <!-- Orejas de Frente Alerta -->
-                  <g class="anim-rabbit-ears">
-                    <path d="M 15 8 Q 10 -9 15 -10 Q 19 -9 18 8 Z" fill="#fef08a" />
-                    <path d="M 15 6 Q 12 -6 15 -7 Q 17 -6 16.5 6 Z" fill="#f43f5e" opacity="0.5" />
+                      <path d="M 25 8 Q 22 -9 25 -10 Q 30 -9 23 8 Z" fill="url(#rabbitFurGrad)" />
+                      <path d="M 25 6 Q 23 -6 25 -7 Q 28 -6 24.5 6 Z" fill="url(#rabbitEarInnerGrad)" opacity="0.9" />
+                    </g>
 
-                    <path d="M 25 8 Q 22 -9 25 -10 Q 30 -9 23 8 Z" fill="#fef08a" />
-                    <path d="M 25 6 Q 23 -6 25 -7 Q 28 -6 24.5 6 Z" fill="#f43f5e" opacity="0.5" />
+                    <!-- Dos Ojos Mirando de Frente a la Pantalla -->
+                    <circle cx="16" cy="13" r="1.3" fill="#0f172a" />
+                    <circle cx="16.3" cy="12.5" r="0.4" fill="#ffffff" />
+
+                    <circle cx="24" cy="13" r="1.3" fill="#0f172a" />
+                    <circle cx="24.3" cy="12.5" r="0.4" fill="#ffffff" />
+
+                    <!-- Mejillas Rosadas -->
+                    <ellipse cx="14" cy="16" rx="2.4" ry="1.6" fill="url(#rabbitCheekGrad)" />
+                    <ellipse cx="26" cy="16" rx="2.4" ry="1.6" fill="url(#rabbitCheekGrad)" />
+
+                    <!-- Hocico Frontal Inquieto y Bigotes -->
+                    <polygon points="19,16 21,16 20,17.5" fill="#f43f5e" class="anim-rabbit-nose-twitch" />
+                    <path d="M 15 17.5 L 9 16.5 M 15 18 L 10 19 M 25 17.5 L 31 16.5 M 25 18 L 30 19" stroke="#ffffff" stroke-width="0.6" opacity="0.75" stroke-linecap="round" />
                   </g>
-
-                  <!-- Dos Ojos Mirando de Frente a la Pantalla -->
-                  <circle cx="16" cy="13" r="1.3" fill="#0f172a" />
-                  <circle cx="16.3" cy="12.5" r="0.4" fill="#ffffff" />
-
-                  <circle cx="24" cy="13" r="1.3" fill="#0f172a" />
-                  <circle cx="24.3" cy="12.5" r="0.4" fill="#ffffff" />
-
-                  <!-- Mejillas Rosadas -->
-                  <ellipse cx="14" cy="16" rx="2" ry="1.2" fill="#f43f5e" opacity="0.35" />
-                  <ellipse cx="26" cy="16" rx="2" ry="1.2" fill="#f43f5e" opacity="0.35" />
-
-                  <!-- Hocico Frontal Inquieto y Bigotes -->
-                  <polygon points="19,16 21,16 20,17.5" fill="#f43f5e" class="anim-rabbit-nose-twitch" />
-                  <path d="M 15 17.5 L 9 16.5 M 15 18 L 10 19 M 25 17.5 L 31 16.5 M 25 18 L 30 19" stroke="#ffffff" stroke-width="0.6" opacity="0.75" stroke-linecap="round" />
                 </g>
-
               </g>
             </g>
           </g>
