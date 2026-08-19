@@ -310,6 +310,15 @@
         <i class="fa-solid fa-rotate-right"></i>
       </button>
 
+      <button id="exportCsvBtn" type="button" title="Exportar ideas a CSV para comité de decisión" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">
+        <i class="fa-solid fa-file-csv"></i>
+      </button>
+
+      <button id="toggleMatrixBtn" type="button" title="Matriz de priorización Impacto x Factibilidad" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-border-all"></i>
+        <span class="hidden sm:inline">Matriz</span>
+      </button>
+
       <button id="toggleLeaderboardBtn" type="button" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 text-slate-950 hover:opacity-95 shadow-md shadow-emerald-500/10 transition flex items-center gap-1.5">
         <i class="fa-solid fa-trophy"></i>
         <span>Top</span>
@@ -884,6 +893,40 @@
 
       </div>
 
+      <!-- Vista de Matriz de Priorización (Impacto x Factibilidad) -->
+      <div id="priorityMatrixView" class="absolute inset-0 z-40 bg-slate-950/97 backdrop-blur-sm hidden flex-col p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-4 shrink-0">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-border-all text-emerald-400"></i> Matriz de Priorización</h2>
+            <p id="matrixSubtitle" class="text-xs text-slate-400 mt-0.5">Eje vertical: Me gusta (impacto) · Eje horizontal: Es factible</p>
+          </div>
+          <button id="closeMatrixBtn" type="button" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition shrink-0">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="flex-1 flex gap-2 min-h-0">
+          <div class="flex items-center justify-center w-5 shrink-0">
+            <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap" style="writing-mode: vertical-rl; transform: rotate(180deg);">Impacto (Me gusta)</span>
+          </div>
+          <div class="flex-1 flex flex-col min-h-0">
+            <div class="flex-1 min-h-[320px] relative rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden" id="matrixPlotArea">
+              <div class="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
+                <div class="border-r border-b border-slate-800/60 flex items-start justify-start p-3"><span class="text-[10px] uppercase font-bold text-slate-500">Evaluar</span></div>
+                <div class="border-b border-slate-800/60 flex items-start justify-end p-3"><span class="text-[10px] uppercase font-bold text-emerald-400">Prioridad Alta</span></div>
+                <div class="border-r border-slate-800/60 flex items-end justify-start p-3"><span class="text-[10px] uppercase font-bold text-slate-600">Descartar</span></div>
+                <div class="flex items-end justify-end p-3"><span class="text-[10px] uppercase font-bold text-amber-400">Planificar</span></div>
+              </div>
+              <div id="matrixDotsContainer" class="absolute inset-0"></div>
+              <div id="matrixEmptyState" class="absolute inset-0 hidden items-center justify-center text-xs text-slate-500">Aún no hay ideas para graficar en este árbol</div>
+            </div>
+            <div class="text-center text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-2 shrink-0">Factibilidad (Es factible)</div>
+          </div>
+        </div>
+
+        <div id="matrixLegend" class="mt-3 flex flex-wrap gap-3 shrink-0"></div>
+      </div>
+
     </main>
   </div>
 
@@ -1057,12 +1100,12 @@
 
   <!-- Modal para Crear / Editar Idea -->
   <div id="ideaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-panel w-full max-w-md rounded-2xl p-6 border border-slate-700/60 shadow-2xl relative animate-modal">
+    <div class="glass-panel w-full max-w-md rounded-2xl p-6 border border-slate-700/60 shadow-2xl relative animate-modal max-h-[90vh] flex flex-col">
       <button id="closeModalBtn" type="button" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <div class="flex items-center gap-3 mb-4">
+      <div class="flex items-center gap-3 mb-4 shrink-0">
         <div id="modalCategoryBadge" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold">
           <i id="modalCategoryIcon" class="fa-solid fa-lightbulb"></i>
         </div>
@@ -1072,41 +1115,107 @@
         </div>
       </div>
 
-      <form id="ideaForm" class="space-y-4">
+      <form id="ideaForm" class="flex-1 min-h-0 flex flex-col">
         <input type="hidden" id="ideaId">
         <input type="hidden" id="ideaPosX">
         <input type="hidden" id="ideaAnchorCorner">
 
-        <!-- Selector de Categoría en la propia idea -->
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">Categoría de la iniciativa *</label>
-          <select id="ideaCategorySelect" required class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
-            <!-- Renderizado dinámicamente mediante JS -->
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">Título de la iniciativa *</label>
-          <input type="text" id="ideaTitleInput" required placeholder="Ej. Simplificar la solicitud de crédito" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">Detalle de la idea *</label>
-          <textarea id="ideaDescInput" required rows="3" placeholder="Describe brevemente el impacto, objetivo o solución propuesta..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-4 overflow-y-auto pr-1 flex-1 min-h-0">
+          <!-- Selector de Categoría en la propia idea -->
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Tu Nombre / Usuario</label>
-            <input type="text" id="ideaAuthorInput" placeholder="Ej. María G. (UX)" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            <label class="block text-xs font-medium text-slate-300 mb-1">Categoría de la iniciativa *</label>
+            <select id="ideaCategorySelect" required class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <!-- Renderizado dinámicamente mediante JS -->
+            </select>
           </div>
+
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Área / Depto.</label>
-            <input type="text" id="ideaDeptInput" placeholder="Ej. Banca Digital" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            <label class="block text-xs font-medium text-slate-300 mb-1">Título de la iniciativa *</label>
+            <input type="text" id="ideaTitleInput" required placeholder="Ej. Simplificar la solicitud de crédito" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Detalle de la idea *</label>
+            <textarea id="ideaDescInput" required rows="3" placeholder="Describe brevemente el impacto, objetivo o solución propuesta..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Tu Nombre / Usuario</label>
+              <input type="text" id="ideaAuthorInput" placeholder="Ej. María G. (UX)" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Área / Depto.</label>
+              <input type="text" id="ideaDeptInput" placeholder="Ej. Banca Digital" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <!-- Datos para Decisión (estado de pipeline + campos de negocio) -->
+          <div class="pt-1 border-t border-slate-800">
+            <button type="button" id="toggleDecisionFieldsBtn" class="w-full flex items-center justify-between py-2.5 text-xs font-semibold text-slate-300 hover:text-emerald-300 transition">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-clipboard-list text-emerald-400"></i> Datos para decisión</span>
+              <i id="decisionFieldsChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+            </button>
+
+            <div id="decisionFieldsBody" class="space-y-3 pb-1 hidden">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Estado</label>
+                  <select id="ideaStatusSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    <!-- Renderizado dinámicamente mediante JS -->
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Responsable</label>
+                  <input type="text" id="ideaOwnerInput" placeholder="Ej. Equipo Innovación" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Usuarios/clientes afectados</label>
+                  <select id="ideaImpactSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    <option value="bajo">Bajo</option>
+                    <option value="medio">Medio</option>
+                    <option value="alto">Alto</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Esfuerzo estimado</label>
+                  <select id="ideaEffortSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    <option value="bajo">Bajo</option>
+                    <option value="medio">Medio</option>
+                    <option value="alto">Alto</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Área de negocio impactada</label>
+                <input type="text" id="ideaBusinessAreaInput" placeholder="Ej. Banca Empresa" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Comentarios (solo visible al editar una idea existente) -->
+          <div id="ideaCommentsSection" class="pt-1 border-t border-slate-800 hidden">
+            <div class="text-xs font-semibold text-slate-300 flex items-center gap-1.5 py-2.5">
+              <i class="fa-solid fa-comments text-emerald-400"></i> Comentarios
+            </div>
+            <div id="ideaCommentsList" class="space-y-2 mb-2 max-h-40 overflow-y-auto pr-1">
+              <!-- Renderizado dinámicamente mediante JS -->
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="newCommentAuthorInput" placeholder="Tu nombre" class="w-24 shrink-0 bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+              <input type="text" id="newCommentTextInput" placeholder="Escribe un comentario..." class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+              <button type="button" id="addCommentBtn" class="px-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition text-xs shrink-0">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="pt-2 flex justify-end gap-2">
+        <div class="pt-4 flex justify-end gap-2 shrink-0">
           <button type="button" id="cancelModalBtn" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white transition">Cancelar</button>
           <button type="submit" class="px-5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:opacity-90 shadow-lg shadow-emerald-500/20 transition">
             Publicar en el Árbol
@@ -1217,6 +1326,31 @@
       }
     };
 
+    // Estados de Pipeline para Toma de Decisión
+    const STATUS_CONFIG = {
+      nueva: { id: 'nueva', label: 'Nueva', colorHex: '#64748b', badgeClass: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
+      evaluacion: { id: 'evaluacion', label: 'En evaluación', colorHex: '#3b82f6', badgeClass: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
+      desarrollo: { id: 'desarrollo', label: 'En desarrollo', colorHex: '#10b981', badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
+      descartada: { id: 'descartada', label: 'Descartada', colorHex: '#f43f5e', badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/30' }
+    };
+
+    const IMPACT_EFFORT_LABELS = { bajo: 'Bajo', medio: 'Medio', alto: 'Alto' };
+
+    function getStatusConfig(statusId) {
+      return STATUS_CONFIG[statusId] || STATUS_CONFIG.nueva;
+    }
+
+    // Rellena con valores por defecto los campos de decisión en ideas guardadas antes de que existieran
+    function normalizeIdeaFields(idea) {
+      if (!idea.status || !STATUS_CONFIG[idea.status]) idea.status = 'nueva';
+      if (typeof idea.owner !== 'string') idea.owner = '';
+      if (!idea.impact || !IMPACT_EFFORT_LABELS[idea.impact]) idea.impact = 'medio';
+      if (!idea.effort || !IMPACT_EFFORT_LABELS[idea.effort]) idea.effort = 'medio';
+      if (typeof idea.businessArea !== 'string') idea.businessArea = '';
+      if (!Array.isArray(idea.comments)) idea.comments = [];
+      return idea;
+    }
+
     const INITIAL_IDEAS = [
       {
         id: 'demo-1',
@@ -1229,6 +1363,14 @@
         dept: 'Canales Digitales',
         hearts: 28,
         stars: 19,
+        status: 'evaluacion',
+        owner: 'Equipo Canales Digitales',
+        impact: 'alto',
+        effort: 'medio',
+        businessArea: 'Onboarding Digital',
+        comments: [
+          { id: 'c-1', author: 'Marina S. (Negocio)', text: '¿Tenemos el dato de cuántos usuarios se pierden exactamente en el paso 3?', createdAt: new Date().toISOString() }
+        ],
         createdAt: new Date().toISOString()
       },
       {
@@ -1242,6 +1384,12 @@
         dept: 'Productos',
         hearts: 45,
         stars: 32,
+        status: 'desarrollo',
+        owner: 'Squad Ahorro e Inversión',
+        impact: 'alto',
+        effort: 'medio',
+        businessArea: 'Productos de Ahorro',
+        comments: [],
         createdAt: new Date().toISOString()
       },
       {
@@ -1255,6 +1403,14 @@
         dept: 'Banca Empresa',
         hearts: 39,
         stars: 24,
+        status: 'evaluacion',
+        owner: 'Legal & Riesgo',
+        impact: 'medio',
+        effort: 'alto',
+        businessArea: 'Banca Empresa',
+        comments: [
+          { id: 'c-2', author: 'Ricardo O. (Legal)', text: 'Requiere validar con circular normativa vigente antes de avanzar.', createdAt: new Date().toISOString() }
+        ],
         createdAt: new Date().toISOString()
       },
       {
@@ -1268,6 +1424,12 @@
         dept: 'Atención al Cliente',
         hearts: 52,
         stars: 41,
+        status: 'nueva',
+        owner: '',
+        impact: 'alto',
+        effort: 'bajo',
+        businessArea: 'Atención al Cliente',
+        comments: [],
         createdAt: new Date().toISOString()
       }
     ];
@@ -1300,6 +1462,12 @@
             dept: 'UX Team',
             hearts: 34,
             stars: 29,
+            status: 'evaluacion',
+            owner: 'Equipo UX',
+            impact: 'alto',
+            effort: 'medio',
+            businessArea: 'Banca Digital',
+            comments: [],
             createdAt: new Date().toISOString()
           },
           {
@@ -1313,6 +1481,12 @@
             dept: 'UX Team',
             hearts: 41,
             stars: 38,
+            status: 'desarrollo',
+            owner: 'Design System Chapter',
+            impact: 'medio',
+            effort: 'alto',
+            businessArea: 'Plataforma Digital',
+            comments: [],
             createdAt: new Date().toISOString()
           }
         ]
@@ -1335,6 +1509,14 @@
             dept: 'Créditos',
             hearts: 63,
             stars: 47,
+            status: 'desarrollo',
+            owner: 'Risk Fintech',
+            impact: 'alto',
+            effort: 'alto',
+            businessArea: 'Créditos Pyme',
+            comments: [
+              { id: 'c-3', author: 'Valentina R. (Producto)', text: 'Ya tenemos el piloto con SII corriendo en sandbox, avanza bien.', createdAt: new Date().toISOString() }
+            ],
             createdAt: new Date().toISOString()
           }
         ]
@@ -1446,6 +1628,7 @@
           if (!Array.isArray(tree.ideas)) {
             tree.ideas = [];
           }
+          tree.ideas.forEach(normalizeIdeaFields);
         });
 
         const urlTreeId = getTreeIdFromUrl();
@@ -1777,6 +1960,23 @@
       }).join('');
     }
 
+    function populateStatusSelect(selectedStatusId) {
+      const select = document.getElementById('ideaStatusSelect');
+      if (!select) return;
+      select.innerHTML = Object.keys(STATUS_CONFIG).map(key => {
+        const s = STATUS_CONFIG[key];
+        return `<option value="${s.id}" ${s.id === selectedStatusId ? 'selected' : ''}>${escapeHtml(s.label)}</option>`;
+      }).join('');
+    }
+
+    function setDecisionFieldsExpanded(expanded) {
+      const body = document.getElementById('decisionFieldsBody');
+      const chevron = document.getElementById('decisionFieldsChevron');
+      if (!body || !chevron) return;
+      body.classList.toggle('hidden', !expanded);
+      chevron.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
     function openCreateModal(categoryKey, nodeId, anchorCorner) {
       const categories = getActiveCategories();
       const cat = categories[categoryKey] || Object.values(categories)[0];
@@ -1789,6 +1989,18 @@
       document.getElementById('ideaDescInput').value = '';
       document.getElementById('ideaAuthorInput').value = '';
       document.getElementById('ideaDeptInput').value = '';
+
+      populateStatusSelect('nueva');
+      document.getElementById('ideaOwnerInput').value = '';
+      document.getElementById('ideaImpactSelect').value = 'medio';
+      document.getElementById('ideaEffortSelect').value = 'medio';
+      document.getElementById('ideaBusinessAreaInput').value = '';
+      setDecisionFieldsExpanded(false);
+
+      document.getElementById('ideaCommentsSection').classList.add('hidden');
+      document.getElementById('ideaCommentsList').innerHTML = '';
+      document.getElementById('newCommentAuthorInput').value = '';
+      document.getElementById('newCommentTextInput').value = '';
 
       populateCategorySelect(cat.id);
       updateModalCategoryBadge(cat.id);
@@ -1818,6 +2030,7 @@
       const activeTree = getActiveTree();
       const categories = getActiveCategories();
       const cat = categories[idea.category] || Object.values(categories)[0];
+      normalizeIdeaFields(idea);
 
       document.getElementById('ideaId').value = idea.id;
       document.getElementById('ideaPosX').value = idea.nodeId;
@@ -1827,6 +2040,18 @@
       document.getElementById('ideaAuthorInput').value = idea.author;
       document.getElementById('ideaDeptInput').value = idea.dept;
 
+      populateStatusSelect(idea.status);
+      document.getElementById('ideaOwnerInput').value = idea.owner || '';
+      document.getElementById('ideaImpactSelect').value = idea.impact;
+      document.getElementById('ideaEffortSelect').value = idea.effort;
+      document.getElementById('ideaBusinessAreaInput').value = idea.businessArea || '';
+      setDecisionFieldsExpanded(true);
+
+      document.getElementById('ideaCommentsSection').classList.remove('hidden');
+      renderIdeaComments(idea);
+      document.getElementById('newCommentAuthorInput').value = '';
+      document.getElementById('newCommentTextInput').value = '';
+
       populateCategorySelect(idea.category);
       updateModalCategoryBadge(idea.category);
 
@@ -1835,6 +2060,25 @@
       };
 
       document.getElementById('ideaModal').classList.remove('hidden');
+    }
+
+    function renderIdeaComments(idea) {
+      const list = document.getElementById('ideaCommentsList');
+      if (!list) return;
+      if (!Array.isArray(idea.comments) || idea.comments.length === 0) {
+        list.innerHTML = `<p class="text-[11px] text-slate-500 italic">Aún no hay comentarios.</p>`;
+        return;
+      }
+      list.innerHTML = idea.comments.map(c => `
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg px-2.5 py-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold text-emerald-300 truncate">${escapeHtml(c.author || 'Anónimo')}</span>
+            <span class="text-[9px] text-slate-500 shrink-0">${new Date(c.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</span>
+          </div>
+          <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">${escapeHtml(c.text)}</p>
+        </div>
+      `).join('');
+      list.scrollTop = list.scrollHeight;
     }
 
     document.getElementById('ideaForm').addEventListener('submit', (e) => {
@@ -1850,6 +2094,12 @@
       const author = document.getElementById('ideaAuthorInput').value.trim() || 'Colaborador Anónimo';
       const dept = document.getElementById('ideaDeptInput').value.trim() || 'Banco Bci';
 
+      const status = document.getElementById('ideaStatusSelect').value || 'nueva';
+      const owner = document.getElementById('ideaOwnerInput').value.trim();
+      const impact = document.getElementById('ideaImpactSelect').value || 'medio';
+      const effort = document.getElementById('ideaEffortSelect').value || 'medio';
+      const businessArea = document.getElementById('ideaBusinessAreaInput').value.trim();
+
       const existingIndex = activeTree.ideas.findIndex(i => i.id === id);
 
       if (existingIndex >= 0) {
@@ -1860,6 +2110,11 @@
         activeTree.ideas[existingIndex].dept = dept;
         activeTree.ideas[existingIndex].nodeId = nodeId;
         activeTree.ideas[existingIndex].anchorCorner = anchorCorner;
+        activeTree.ideas[existingIndex].status = status;
+        activeTree.ideas[existingIndex].owner = owner;
+        activeTree.ideas[existingIndex].impact = impact;
+        activeTree.ideas[existingIndex].effort = effort;
+        activeTree.ideas[existingIndex].businessArea = businessArea;
         showToast('Idea actualizada con éxito');
       } else {
         const newIdea = {
@@ -1873,6 +2128,12 @@
           dept,
           hearts: 0,
           stars: 0,
+          status,
+          owner,
+          impact,
+          effort,
+          businessArea,
+          comments: [],
           createdAt: new Date().toISOString()
         };
         activeTree.ideas.push(newIdea);
@@ -1936,6 +2197,7 @@
       const cardPlacementCounters = {};
 
       filtered.forEach(idea => {
+        normalizeIdeaFields(idea);
         const nodeKey = idea.nodeId;
         const node = BRANCH_NODES.find(n => n.id === nodeKey) || BRANCH_NODES[0];
 
@@ -1944,6 +2206,7 @@
 
         const cat = categories[idea.category] || Object.values(categories)[0];
         const color = cat.colorHex || '#10b981';
+        const statusCfg = getStatusConfig(idea.status);
 
         const cornerName = idea.anchorCorner || node.anchorCorner || 'bottom-right';
 
@@ -2017,6 +2280,13 @@
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border" style="background-color: ${statusCfg.colorHex}18; color: ${statusCfg.colorHex}; border-color: ${statusCfg.colorHex}40;">
+              ${escapeHtml(statusCfg.label)}
+            </span>
+            ${idea.comments && idea.comments.length ? `<span class="text-[9px] text-slate-500 flex items-center gap-0.5 ml-auto" title="${idea.comments.length} comentario(s)"><i class="fa-solid fa-comment text-[8px]"></i>${idea.comments.length}</span>` : ''}
           </div>
 
           <h4 class="font-semibold text-slate-100 text-xs leading-snug line-clamp-2 mb-1">${escapeHtml(idea.title)}</h4>
@@ -2298,6 +2568,129 @@
           </div>
         `;
       }).join('');
+    }
+
+    // Matriz de Priorización: Me gusta (impacto, eje Y) x Es factible (eje X)
+    function renderPriorityMatrix() {
+      const activeTree = getActiveTree();
+      const categories = getActiveCategories();
+      const container = document.getElementById('matrixDotsContainer');
+      const legend = document.getElementById('matrixLegend');
+      const emptyState = document.getElementById('matrixEmptyState');
+      const subtitle = document.getElementById('matrixSubtitle');
+      if (!container || !legend || !emptyState) return;
+
+      const ideas = activeTree.ideas;
+      subtitle.innerText = `Eje vertical: Me gusta (impacto) · Eje horizontal: Es factible · ${ideas.length} idea(s) en "${activeTree.name}"`;
+
+      if (ideas.length === 0) {
+        container.innerHTML = '';
+        legend.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        return;
+      }
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+
+      const maxHearts = Math.max(1, ...ideas.map(i => i.hearts || 0));
+      const maxStars = Math.max(1, ...ideas.map(i => i.stars || 0));
+      const maxVotes = Math.max(1, ...ideas.map(i => (i.hearts || 0) + (i.stars || 0)));
+
+      container.innerHTML = ideas.map(idea => {
+        normalizeIdeaFields(idea);
+        const cat = categories[idea.category] || Object.values(categories)[0];
+        const color = cat.colorHex || '#10b981';
+        const statusCfg = getStatusConfig(idea.status);
+
+        const leftPct = 8 + ((idea.stars || 0) / maxStars) * 84;
+        const topPct = 92 - ((idea.hearts || 0) / maxHearts) * 84;
+        const totalVotes = (idea.hearts || 0) + (idea.stars || 0);
+        const size = 22 + Math.round((totalVotes / maxVotes) * 20);
+
+        return `
+          <button type="button" onclick="editIdeaFromCard('${idea.id}')"
+            class="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 flex items-center justify-center hover:scale-125 hover:z-10 transition-transform shadow-lg"
+            style="left: ${leftPct}%; top: ${topPct}%; width: ${size}px; height: ${size}px; background-color: ${color}30; border-color: ${color};"
+            title="${escapeHtml(idea.title)}&#10;${escapeHtml(statusCfg.label)} · Me gusta: ${idea.hearts} · Es factible: ${idea.stars}">
+            <i class="fa-solid ${cat.icon || 'fa-lightbulb'} text-[9px]" style="color: ${color};"></i>
+          </button>
+        `;
+      }).join('');
+
+      const usedCategoryIds = [...new Set(ideas.map(i => i.category))];
+      legend.innerHTML = usedCategoryIds.map(catId => {
+        const cat = categories[catId] || Object.values(categories)[0];
+        const color = cat.colorHex || '#10b981';
+        return `
+          <span class="text-[10px] flex items-center gap-1.5 text-slate-400">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color};"></span>
+            ${escapeHtml(cat.name)}
+          </span>
+        `;
+      }).join('');
+    }
+
+    // Exportar ideas del árbol activo a CSV para llevar a comité de decisión
+    function csvEscape(value) {
+      const str = String(value === undefined || value === null ? '' : value);
+      if (/[",\n]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    function exportIdeasToCsv() {
+      const activeTree = getActiveTree();
+      const categories = getActiveCategories();
+
+      if (activeTree.ideas.length === 0) {
+        showToast('No hay ideas para exportar en este árbol');
+        return;
+      }
+
+      const headers = [
+        'Título', 'Categoría', 'Estado', 'Responsable', 'Área de negocio impactada',
+        'Usuarios/clientes afectados', 'Esfuerzo estimado', 'Autor', 'Área / Depto.',
+        'Me gusta', 'Es factible', 'Total votos', 'Comentarios', 'Creado'
+      ];
+
+      const rows = activeTree.ideas.map(idea => {
+        normalizeIdeaFields(idea);
+        const cat = categories[idea.category] || Object.values(categories)[0];
+        const statusCfg = getStatusConfig(idea.status);
+        return [
+          idea.title,
+          cat.name,
+          statusCfg.label,
+          idea.owner,
+          idea.businessArea,
+          IMPACT_EFFORT_LABELS[idea.impact] || idea.impact,
+          IMPACT_EFFORT_LABELS[idea.effort] || idea.effort,
+          idea.author,
+          idea.dept,
+          idea.hearts,
+          idea.stars,
+          (idea.hearts || 0) + (idea.stars || 0),
+          idea.comments.length,
+          new Date(idea.createdAt).toLocaleDateString('es-CL')
+        ].map(csvEscape).join(',');
+      });
+
+      const csvContent = '﻿' + [headers.map(csvEscape).join(','), ...rows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const safeTreeName = activeTree.name
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      link.href = url;
+      link.download = `arbol-ideas-${safeTreeName || 'export'}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('CSV exportado para comité de decisión');
     }
 
     // Funciones del Modal de Configuración
@@ -2930,6 +3323,69 @@
       document.getElementById('closeLeaderboardBtn').addEventListener('click', () => {
         document.getElementById('leaderboardDrawer').classList.add('translate-x-full');
       });
+
+      // Datos para decisión: colapsar/expandir
+      const toggleDecisionBtn = document.getElementById('toggleDecisionFieldsBtn');
+      if (toggleDecisionBtn) {
+        toggleDecisionBtn.addEventListener('click', () => {
+          const body = document.getElementById('decisionFieldsBody');
+          setDecisionFieldsExpanded(body.classList.contains('hidden'));
+        });
+      }
+
+      // Agregar comentario a la idea en edición
+      const addCommentBtn = document.getElementById('addCommentBtn');
+      if (addCommentBtn) {
+        addCommentBtn.addEventListener('click', () => {
+          const ideaId = document.getElementById('ideaId').value;
+          if (!ideaId) return;
+          const activeTree = getActiveTree();
+          const idea = activeTree.ideas.find(i => i.id === ideaId);
+          if (!idea) return;
+
+          const authorInput = document.getElementById('newCommentAuthorInput');
+          const textInput = document.getElementById('newCommentTextInput');
+          const text = textInput.value.trim();
+          if (!text) return;
+
+          if (!Array.isArray(idea.comments)) idea.comments = [];
+          idea.comments.push({
+            id: 'comment-' + Date.now(),
+            author: authorInput.value.trim() || 'Anónimo',
+            text,
+            createdAt: new Date().toISOString()
+          });
+
+          textInput.value = '';
+          renderIdeaComments(idea);
+          saveState();
+          renderTreeCards();
+        });
+      }
+
+      // Exportar CSV para comité de decisión
+      const exportCsvBtn = document.getElementById('exportCsvBtn');
+      if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', exportIdeasToCsv);
+      }
+
+      // Matriz de Priorización
+      const toggleMatrixBtn = document.getElementById('toggleMatrixBtn');
+      const closeMatrixBtn = document.getElementById('closeMatrixBtn');
+      const priorityMatrixView = document.getElementById('priorityMatrixView');
+      if (toggleMatrixBtn && priorityMatrixView) {
+        toggleMatrixBtn.addEventListener('click', () => {
+          priorityMatrixView.classList.remove('hidden');
+          priorityMatrixView.classList.add('flex');
+          renderPriorityMatrix();
+        });
+      }
+      if (closeMatrixBtn && priorityMatrixView) {
+        closeMatrixBtn.addEventListener('click', () => {
+          priorityMatrixView.classList.add('hidden');
+          priorityMatrixView.classList.remove('flex');
+        });
+      }
     }
 
     function closeModal() {
