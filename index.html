@@ -52,6 +52,39 @@
       background-size: 24px 24px;
     }
 
+    /* Tema Claro por Árbol: se aplica solo al canvas del árbol activo cuando
+       tree.theme === 'light' (ver applyCanvasTheme()). El header y la barra
+       lateral permanecen con el tema oscuro de siempre. */
+    #canvasContainer.canvas-light-theme {
+      background-color: #eef1f6;
+      background-image: radial-gradient(circle at 50% 35%, rgba(255,255,255,0.9) 0%, rgba(238,241,246,0) 60%), radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px;
+    }
+    .glass-panel-light {
+      background: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(15, 23, 42, 0.1) !important;
+    }
+    .glass-panel-light .text-slate-300,
+    .glass-panel-light .text-slate-400 {
+      color: #334155 !important;
+    }
+    .glass-panel-light .text-emerald-300 {
+      color: #059669 !important;
+    }
+    .glass-panel-light .hover\:bg-slate-800:hover {
+      background-color: rgba(15, 23, 42, 0.06) !important;
+    }
+    .glass-card-light {
+      background: rgba(255, 255, 255, 0.97) !important;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    }
+    .glass-card-light:hover {
+      box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.18) !important;
+    }
+
     /* Efecto de pulso para nodos del árbol */
     @keyframes pulseGlow {
       0%, 100% { opacity: 0.6; transform: scale(1); }
@@ -362,7 +395,7 @@
     <main class="flex-1 relative overflow-hidden flex items-center justify-center cursor-grab" id="canvasContainer">
 
       <!-- Controles de Zoom y Pan -->
-      <div class="absolute bottom-6 right-6 glass-panel rounded-xl p-1.5 flex items-center gap-1 z-30 border border-slate-800">
+      <div id="zoomControlsPanel" class="absolute bottom-6 right-6 glass-panel rounded-xl p-1.5 flex items-center gap-1 z-30 border border-slate-800">
         <button id="zoomOutBtn" type="button" class="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-300 flex items-center justify-center transition" title="Reducir zoom">
           <i class="fa-solid fa-minus text-xs"></i>
         </button>
@@ -1657,6 +1690,54 @@
             createdAt: new Date().toISOString()
           }
         ]
+      },
+      {
+        id: 'tree-innovacion-tendencias-2',
+        name: 'Árbol Innovación & Tendencias 2',
+        team: 'Innovación',
+        theme: 'light',
+        useCustomCategories: false,
+        categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+        ideas: [
+          {
+            id: 'demo-trend2-1',
+            category: 'spontaneous',
+            nodeId: 'center-top',
+            anchorCorner: 'bottom-left',
+            title: 'Banca embebida (Embedded Finance) en comercios aliados',
+            description: 'Tendencia del sector: ofrecer productos financieros (crédito, seguros, cuentas) directamente dentro de plataformas de terceros (e-commerce, ERPs de pymes) en vez de solo en el canal propio del banco.',
+            author: 'Equipo Innovación',
+            dept: 'Innovación',
+            hearts: 12,
+            stars: 8,
+            status: 'evaluacion',
+            owner: 'Equipo Innovación',
+            impact: 'alto',
+            effort: 'alto',
+            businessArea: 'Nuevos Negocios',
+            comments: [],
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'demo-trend2-2',
+            category: 'spontaneous',
+            nodeId: 'right-top',
+            anchorCorner: 'bottom-left',
+            title: 'Fintech Engineering Handbook',
+            description: 'Tendencia detectada en Hacker News (#36 puntos, 220 comentarios). Ejemplo de contenido que puede convertirse en idea desde el panel de Tendencias en Vivo.',
+            author: 'Colaborador Anónimo',
+            dept: 'Innovación',
+            hearts: 9,
+            stars: 8,
+            status: 'nueva',
+            owner: '',
+            impact: 'medio',
+            effort: 'medio',
+            businessArea: '',
+            comments: [],
+            createdAt: new Date().toISOString()
+          }
+        ]
       }
     ];
 
@@ -1811,6 +1892,31 @@
       }
     }
 
+    // Tema Claro por Árbol: aplica (o quita) el look claro solo al canvas del
+    // árbol activo, sin tocar el header/sidebar ni el resto de los árboles.
+    function applyCanvasTheme() {
+      const activeTree = getActiveTree();
+      const isLight = activeTree.theme === 'light';
+
+      const canvasContainer = document.getElementById('canvasContainer');
+      const zoomPanel = document.getElementById('zoomControlsPanel');
+      const dragHint = document.getElementById('dragHelpNotice');
+      const earthLayer = document.getElementById('earthBaseLayer');
+
+      canvasContainer.classList.toggle('canvas-light-theme', isLight);
+
+      [zoomPanel, dragHint].forEach(el => {
+        if (!el) return;
+        el.classList.toggle('glass-panel', !isLight);
+        el.classList.toggle('glass-panel-light', isLight);
+        el.classList.toggle('border-slate-800', !isLight);
+      });
+
+      if (earthLayer) {
+        earthLayer.style.display = isLight ? 'none' : '';
+      }
+    }
+
     window.setAppBackground = function(type, value) {
       appConfig.bgType = type;
       appConfig.bgValue = value;
@@ -1878,6 +1984,7 @@
       if (!treeId) return;
       currentTreeId = treeId;
       saveState();
+      applyCanvasTheme();
       updateTreePickerUI();
       renderSidebarCategories();
       renderTreeCards();
@@ -2285,6 +2392,7 @@
 
     function renderTreeCards() {
       const activeTree = getActiveTree();
+      const isLightTheme = activeTree.theme === 'light';
       const categories = getActiveCategories();
       const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
       const catSelected = document.getElementById('categoryFilter').value;
@@ -2390,7 +2498,7 @@
         }
 
         const cardEl = document.createElement('div');
-        cardEl.className = `glass-card absolute pointer-events-auto rounded-xl p-3 w-[220px] shadow-xl border-l-4 cursor-grab active:cursor-grabbing select-none group hover:z-30`;
+        cardEl.className = `${isLightTheme ? 'glass-card-light' : 'glass-card'} absolute pointer-events-auto rounded-xl p-3 w-[220px] shadow-xl border-l-4 cursor-grab active:cursor-grabbing select-none group hover:z-30`;
         cardEl.style.borderLeftColor = color;
         cardEl.style.boxShadow = `0 10px 25px -5px ${color}55`;
         cardEl.setAttribute('data-id', idea.id);
@@ -2400,11 +2508,25 @@
 
         const heartBtnStyle = hasHeartVoted
           ? 'bg-rose-500/30 text-rose-300 border-rose-500/80 shadow-md shadow-rose-500/20'
-          : 'bg-slate-800/70 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border-slate-700/50';
+          : (isLightTheme ? 'bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-500 border-slate-300' : 'bg-slate-800/70 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border-slate-700/50');
 
         const starBtnStyle = hasStarVoted
           ? 'bg-amber-500/30 text-amber-300 border-amber-500/80 shadow-md shadow-amber-500/20'
-          : 'bg-slate-800/70 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700/50';
+          : (isLightTheme ? 'bg-slate-100 hover:bg-amber-50 text-slate-500 hover:text-amber-500 border-slate-300' : 'bg-slate-800/70 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700/50');
+
+        // Clases de texto/fondo que cambian según el tema del árbol activo
+        const titleTextClass = isLightTheme ? 'text-slate-800' : 'text-slate-100';
+        const descTextClass = isLightTheme ? 'text-slate-600' : 'text-slate-400';
+        const footerBorderClass = isLightTheme ? 'border-slate-200' : 'border-slate-800/80';
+        const authorIconClass = isLightTheme ? 'text-slate-400' : 'text-slate-600';
+        const editBtnClass = isLightTheme ? 'text-slate-400 hover:text-emerald-600 hover:bg-slate-100' : 'text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80';
+        const deleteBtnClass = isLightTheme ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100' : 'text-slate-400 hover:text-rose-400 hover:bg-slate-800/80';
+        const commentToggleClass = isLightTheme ? 'text-slate-500 hover:text-emerald-600' : 'text-slate-500 hover:text-emerald-300';
+        const commentBoxBgClass = isLightTheme ? 'bg-slate-100' : 'bg-slate-950/60';
+        const commentAuthorClass = isLightTheme ? 'text-emerald-700' : 'text-emerald-300';
+        const commentDateClass = isLightTheme ? 'text-slate-400' : 'text-slate-500';
+        const commentTextClass = isLightTheme ? 'text-slate-700' : 'text-slate-300';
+        const commentInputClass = isLightTheme ? 'bg-white border-slate-300 text-slate-800 placeholder-slate-400' : 'bg-slate-900 border-slate-700/60 text-white placeholder-slate-500';
 
         cardEl.innerHTML = `
           <div class="flex items-center justify-between gap-1 mb-1">
@@ -2414,10 +2536,10 @@
             </span>
 
             <div class="flex items-center gap-1">
-              <button onclick="editIdeaFromCard('${idea.id}')" type="button" class="text-slate-400 hover:text-emerald-300 transition text-xs p-1 rounded-lg hover:bg-slate-800/80" title="Editar idea">
+              <button onclick="editIdeaFromCard('${idea.id}')" type="button" class="${editBtnClass} transition text-xs p-1 rounded-lg" title="Editar idea">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
-              <button onclick="deleteIdea('${idea.id}')" type="button" class="text-slate-400 hover:text-rose-400 transition text-xs p-1 rounded-lg hover:bg-slate-800/80" title="Eliminar idea">
+              <button onclick="deleteIdea('${idea.id}')" type="button" class="${deleteBtnClass} transition text-xs p-1 rounded-lg" title="Eliminar idea">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
@@ -2429,13 +2551,13 @@
             </span>
           </div>
 
-          <h4 class="font-semibold text-slate-100 text-xs leading-snug ${isDescExpanded ? '' : 'line-clamp-2'} mb-1">${escapeHtml(idea.title)}</h4>
-          <p class="text-[11px] text-slate-400 ${isDescExpanded ? '' : 'line-clamp-2'} mb-1 leading-relaxed">${escapeHtml(idea.description)}</p>
-          ${(idea.description.length > 90 || idea.title.length > 50) ? `<button onclick="toggleCardDescription('${idea.id}', event)" type="button" class="text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 transition mb-2">${isDescExpanded ? 'Ver menos' : 'Ver más'}</button>` : `<div class="mb-2"></div>`}
+          <h4 class="font-semibold ${titleTextClass} text-xs leading-snug ${isDescExpanded ? '' : 'line-clamp-2'} mb-1">${escapeHtml(idea.title)}</h4>
+          <p class="text-[11px] ${descTextClass} ${isDescExpanded ? '' : 'line-clamp-2'} mb-1 leading-relaxed">${escapeHtml(idea.description)}</p>
+          ${(idea.description.length > 90 || idea.title.length > 50) ? `<button onclick="toggleCardDescription('${idea.id}', event)" type="button" class="text-[10px] font-semibold text-emerald-500 hover:text-emerald-400 transition mb-2">${isDescExpanded ? 'Ver menos' : 'Ver más'}</button>` : `<div class="mb-2"></div>`}
 
-          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1.5 border-t border-slate-800/80">
+          <div class="flex items-center justify-between text-[10px] ${isLightTheme ? 'text-slate-500' : 'text-slate-500'} pt-1.5 border-t ${footerBorderClass}">
             <span class="truncate max-w-[90px]" title="${escapeHtml(idea.author)} - ${escapeHtml(idea.dept)}">
-              <i class="fa-regular fa-user text-slate-600 mr-1"></i>${escapeHtml(idea.author)}
+              <i class="fa-regular fa-user ${authorIconClass} mr-1"></i>${escapeHtml(idea.author)}
             </span>
 
             <div class="flex items-center gap-1">
@@ -2450,8 +2572,8 @@
             </div>
           </div>
 
-          <div class="mt-1.5 pt-1.5 border-t border-slate-800/80">
-            <button onclick="toggleCardComments('${idea.id}', event)" type="button" class="w-full flex items-center gap-1 text-[10px] text-slate-500 hover:text-emerald-300 transition">
+          <div class="mt-1.5 pt-1.5 border-t ${footerBorderClass}">
+            <button onclick="toggleCardComments('${idea.id}', event)" type="button" class="w-full flex items-center gap-1 text-[10px] ${commentToggleClass} transition">
               <i class="fa-solid fa-comment text-[9px]"></i>
               <span>${idea.comments.length > 0 ? idea.comments.length + ' comentario' + (idea.comments.length === 1 ? '' : 's') : 'Comentar'}</span>
               <i class="fa-solid fa-chevron-${isCommentsExpanded ? 'up' : 'down'} text-[8px] ml-auto"></i>
@@ -2460,18 +2582,18 @@
             ${isCommentsExpanded ? `
               <div class="mt-1.5 space-y-1.5 max-h-28 overflow-y-auto pr-0.5" onmousedown="event.stopPropagation()">
                 ${idea.comments.length > 0 ? idea.comments.map(c => `
-                  <div class="bg-slate-950/60 rounded-lg px-2 py-1.5">
+                  <div class="${commentBoxBgClass} rounded-lg px-2 py-1.5">
                     <div class="flex items-center justify-between gap-1">
-                      <span class="text-[9px] font-semibold text-emerald-300 truncate">${escapeHtml(c.author || 'Anónimo')}</span>
-                      <span class="text-[8px] text-slate-500 shrink-0">${new Date(c.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</span>
+                      <span class="text-[9px] font-semibold ${commentAuthorClass} truncate">${escapeHtml(c.author || 'Anónimo')}</span>
+                      <span class="text-[8px] ${commentDateClass} shrink-0">${new Date(c.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</span>
                     </div>
-                    <p class="text-[10px] text-slate-300 leading-snug mt-0.5">${escapeHtml(c.text)}</p>
+                    <p class="text-[10px] ${commentTextClass} leading-snug mt-0.5">${escapeHtml(c.text)}</p>
                   </div>
-                `).join('') : `<p class="text-[10px] text-slate-500 italic">Aún no hay comentarios.</p>`}
+                `).join('') : `<p class="text-[10px] ${commentDateClass} italic">Aún no hay comentarios.</p>`}
               </div>
               <div class="flex gap-1 mt-1.5" onmousedown="event.stopPropagation()">
-                <input type="text" id="cardCommentInput-${idea.id}" placeholder="Escribe un comentario..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCardComment('${idea.id}', event);}" class="flex-1 min-w-0 bg-slate-900 border border-slate-700/60 rounded-lg px-2 py-1 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-                <button onclick="addCardComment('${idea.id}', event)" type="button" class="px-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition text-[10px] shrink-0">
+                <input type="text" id="cardCommentInput-${idea.id}" placeholder="Escribe un comentario..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCardComment('${idea.id}', event);}" class="flex-1 min-w-0 ${commentInputClass} border rounded-lg px-2 py-1 text-[10px] focus:outline-none focus:border-emerald-500">
+                <button onclick="addCardComment('${idea.id}', event)" type="button" class="px-2 rounded-lg bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 hover:bg-emerald-500/30 transition text-[10px] shrink-0">
                   <i class="fa-solid fa-paper-plane text-[9px]"></i>
                 </button>
               </div>
@@ -3434,6 +3556,7 @@
           currentTreeId = trees[0].id;
         }
         saveState();
+        applyCanvasTheme();
         updateTreePickerUI();
         renderSidebarCategories();
         renderTreeCards();
@@ -3784,6 +3907,7 @@
 
         saveState();
         applyAppBackground();
+        applyCanvasTheme();
         updateTreePickerUI();
         renderSidebarCategories();
         renderTreeCards();
@@ -3930,6 +4054,7 @@
       loadState();
       setupConfigModal();
       setupConfirmDeleteModal();
+      applyCanvasTheme();
       updateTreePickerUI();
       renderSidebarCategories();
       setupZoomControls();
