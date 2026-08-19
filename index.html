@@ -1280,6 +1280,7 @@
     let panY = 0;
     let userVotes = {};
     let activeDraggedCard = null;
+    let expandedCardComments = new Set();
 
     // Configuración Global de Apariencia
     let appConfig = {
@@ -2255,6 +2256,7 @@
         const cat = categories[idea.category] || Object.values(categories)[0];
         const color = cat.colorHex || '#10b981';
         const statusCfg = getStatusConfig(idea.status);
+        const isCommentsExpanded = expandedCardComments.has(idea.id);
 
         const cornerName = idea.anchorCorner || node.anchorCorner || 'bottom-right';
 
@@ -2334,7 +2336,6 @@
             <span class="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border" style="background-color: ${statusCfg.colorHex}18; color: ${statusCfg.colorHex}; border-color: ${statusCfg.colorHex}40;">
               ${escapeHtml(statusCfg.label)}
             </span>
-            ${idea.comments && idea.comments.length ? `<span class="text-[9px] text-slate-500 flex items-center gap-0.5 ml-auto" title="${idea.comments.length} comentario(s)"><i class="fa-solid fa-comment text-[8px]"></i>${idea.comments.length}</span>` : ''}
           </div>
 
           <h4 class="font-semibold text-slate-100 text-xs leading-snug line-clamp-2 mb-1">${escapeHtml(idea.title)}</h4>
@@ -2355,6 +2356,34 @@
                 <span class="font-mono text-[10px] font-semibold">${idea.stars}</span>
               </button>
             </div>
+          </div>
+
+          <div class="mt-1.5 pt-1.5 border-t border-slate-800/80">
+            <button onclick="toggleCardComments('${idea.id}', event)" type="button" class="w-full flex items-center gap-1 text-[10px] text-slate-500 hover:text-emerald-300 transition">
+              <i class="fa-solid fa-comment text-[9px]"></i>
+              <span>${idea.comments.length > 0 ? idea.comments.length + ' comentario' + (idea.comments.length === 1 ? '' : 's') : 'Comentar'}</span>
+              <i class="fa-solid fa-chevron-${isCommentsExpanded ? 'up' : 'down'} text-[8px] ml-auto"></i>
+            </button>
+
+            ${isCommentsExpanded ? `
+              <div class="mt-1.5 space-y-1.5 max-h-28 overflow-y-auto pr-0.5" onmousedown="event.stopPropagation()">
+                ${idea.comments.length > 0 ? idea.comments.map(c => `
+                  <div class="bg-slate-950/60 rounded-lg px-2 py-1.5">
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="text-[9px] font-semibold text-emerald-300 truncate">${escapeHtml(c.author || 'Anónimo')}</span>
+                      <span class="text-[8px] text-slate-500 shrink-0">${new Date(c.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-300 leading-snug mt-0.5">${escapeHtml(c.text)}</p>
+                  </div>
+                `).join('') : `<p class="text-[10px] text-slate-500 italic">Aún no hay comentarios.</p>`}
+              </div>
+              <div class="flex gap-1 mt-1.5" onmousedown="event.stopPropagation()">
+                <input type="text" id="cardCommentInput-${idea.id}" placeholder="Escribe un comentario..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCardComment('${idea.id}', event);}" class="flex-1 min-w-0 bg-slate-900 border border-slate-700/60 rounded-lg px-2 py-1 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                <button onclick="addCardComment('${idea.id}', event)" type="button" class="px-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition text-[10px] shrink-0">
+                  <i class="fa-solid fa-paper-plane text-[9px]"></i>
+                </button>
+              </div>
+            ` : ''}
           </div>
         `;
 
@@ -2564,6 +2593,44 @@
 
       saveState();
       renderTreeCards();
+    };
+
+    // Comentarios inline en la propia tarjeta (sin necesidad de abrir el modal de edición)
+    window.toggleCardComments = function(ideaId, event) {
+      if (event) event.stopPropagation();
+      if (expandedCardComments.has(ideaId)) {
+        expandedCardComments.delete(ideaId);
+      } else {
+        expandedCardComments.add(ideaId);
+      }
+      renderTreeCards();
+    };
+
+    window.addCardComment = function(ideaId, event) {
+      if (event) event.stopPropagation();
+      const activeTree = getActiveTree();
+      const idea = activeTree.ideas.find(i => i.id === ideaId);
+      if (!idea) return;
+
+      const input = document.getElementById(`cardCommentInput-${ideaId}`);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      if (!Array.isArray(idea.comments)) idea.comments = [];
+      idea.comments.push({
+        id: 'comment-' + Date.now(),
+        author: 'Colaborador Anónimo',
+        text,
+        createdAt: new Date().toISOString()
+      });
+
+      expandedCardComments.add(ideaId);
+      saveState();
+      renderTreeCards();
+
+      const refocused = document.getElementById(`cardCommentInput-${ideaId}`);
+      if (refocused) refocused.focus();
     };
 
     window.deleteIdea = function(id) {
