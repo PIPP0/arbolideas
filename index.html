@@ -48,8 +48,8 @@
       box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.7);
     }
     .dot-grid {
-      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='1200' viewBox='0 0 300 1200'%3E%3Crect x='20' y='55' width='110' height='90' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Cpolygon points='225,55 280,145 170,145' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Crect x='20' y='255' width='110' height='90' fill='none' stroke='rgba(244,63,94,0.4)' stroke-width='1.5'/%3E%3Cpolygon points='225,255 280,345 170,345' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Crect x='20' y='455' width='110' height='90' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Cpolygon points='225,455 280,545 170,545' fill='none' stroke='rgba(245,158,11,0.45)' stroke-width='1.5'/%3E%3Crect x='20' y='655' width='110' height='90' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Cpolygon points='225,655 280,745 170,745' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Crect x='5' y='855' width='140' height='90' fill='none' stroke='rgba(59,130,246,0.45)' stroke-width='1.5'/%3E%3Cpolygon points='225,855 280,945 170,945' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Crect x='20' y='1055' width='110' height='90' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3Cpolygon points='225,1055 280,1145 170,1145' fill='none' stroke='rgba(15,23,42,0.12)' stroke-width='1.5'/%3E%3C/svg%3E");
+      background-size: 300px 1200px;
     }
 
     /* Efecto de pulso para nodos del árbol */
@@ -971,11 +971,15 @@
               <i class="fa-solid fa-arrow-rotate-left text-[10px] text-emerald-400"></i> Restablecer Fondo Original
             </button>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <button type="button" onclick="setAppBackground('theme', '#ffffff')" class="p-3 rounded-xl border border-slate-700 bg-white hover:border-emerald-500 text-left transition group relative">
+              <div class="w-full h-8 rounded-lg bg-white border border-slate-300 mb-2"></div>
+              <span class="text-xs font-medium text-slate-900 group-hover:text-emerald-600">Blanco</span>
+              <span class="text-[9px] uppercase font-bold text-emerald-600 block mt-0.5">(Original)</span>
+            </button>
             <button type="button" onclick="setAppBackground('theme', '#020617')" class="p-3 rounded-xl border border-slate-700 bg-slate-950 hover:border-emerald-500 text-left transition group relative">
               <div class="w-full h-8 rounded-lg bg-slate-950 border border-slate-800 mb-2"></div>
               <span class="text-xs font-medium text-slate-200 group-hover:text-emerald-400">Noche Oscura</span>
-              <span class="text-[9px] uppercase font-bold text-emerald-400 block mt-0.5">(Original)</span>
             </button>
             <button type="button" onclick="setAppBackground('theme', '#0f172a')" class="p-3 rounded-xl border border-slate-700 bg-slate-900 hover:border-emerald-500 text-left transition group">
               <div class="w-full h-8 rounded-lg bg-slate-900 border border-slate-800 mb-2"></div>
@@ -1258,7 +1262,7 @@
     // Configuración Global de Apariencia
     let appConfig = {
       bgType: 'theme', // 'theme' | 'image'
-      bgValue: '#020617'
+      bgValue: '#ffffff'
     };
 
     // Íconos Disponibles para Selección de Categorías
@@ -1704,10 +1708,10 @@
 
     window.resetAppBackgroundToOriginal = function() {
       appConfig.bgType = 'theme';
-      appConfig.bgValue = '#020617';
+      appConfig.bgValue = '#ffffff';
       applyAppBackground();
       saveState();
-      showToast('Fondo original (Noche Oscura) restablecido');
+      showToast('Fondo original (Blanco) restablecido');
     };
 
     function updateTreePickerUI() {
@@ -3333,7 +3337,7 @@
         trees = JSON.parse(JSON.stringify(DEMO_TREES));
         currentTreeId = 'tree-bci-main';
         userVotes = {};
-        appConfig = { bgType: 'theme', bgValue: '#020617' };
+        appConfig = { bgType: 'theme', bgValue: '#ffffff' };
 
         saveState();
         applyAppBackground();
