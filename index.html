@@ -319,6 +319,11 @@
         <span class="hidden sm:inline">Matriz</span>
       </button>
 
+      <button id="toggleTrendsBtn" type="button" title="Tendencias en vivo (Hacker News) para inspirar nuevas ideas" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-bolt text-amber-400"></i>
+        <span class="hidden sm:inline">Tendencias</span>
+      </button>
+
       <button id="toggleLeaderboardBtn" type="button" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 text-slate-950 hover:opacity-95 shadow-md shadow-emerald-500/10 transition flex items-center gap-1.5">
         <i class="fa-solid fa-trophy"></i>
         <span>Top</span>
@@ -1242,6 +1247,32 @@
     </div>
   </div>
 
+  <!-- Panel Desplegable Tendencias en Vivo (conectado a la API pública de Hacker News) -->
+  <div id="trendsDrawer" class="fixed inset-y-0 right-0 w-80 glass-panel border-l border-slate-800 z-40 transform translate-x-full transition-transform duration-300 p-5 flex flex-col">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-bolt text-amber-400 text-sm"></i>
+        <h3 class="font-semibold text-sm text-white">Tendencias en Vivo</h3>
+      </div>
+      <button id="closeTrendsBtn" type="button" class="text-slate-400 hover:text-white text-xs">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <p class="text-[11px] text-slate-500 pt-3 shrink-0">Búsqueda en vivo en Hacker News (API pública, sin clave) para inspirar nuevas ideas. "Convertir en idea" la agrega al árbol activo.</p>
+
+    <div class="flex gap-2 pt-3 shrink-0">
+      <input type="text" id="trendsSearchInput" value="fintech" placeholder="Ej. fintech, IA, pagos..." class="flex-1 min-w-0 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+      <button id="trendsSearchBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition shrink-0">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+
+    <div id="trendsResultsList" class="flex-1 overflow-y-auto py-4 space-y-2.5">
+      <!-- Resultados renderizados dinámicamente mediante JS -->
+    </div>
+  </div>
+
   <!-- Modal de Confirmación de Eliminación -->
   <div id="confirmDeleteModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[60] flex items-center justify-center p-4 hidden">
     <div class="glass-panel w-full max-w-sm rounded-2xl p-6 border border-rose-500/30 shadow-2xl relative animate-modal">
@@ -1564,6 +1595,34 @@
             comments: [
               { id: 'c-3', author: 'Valentina R. (Producto)', text: 'Ya tenemos el piloto con SII corriendo en sandbox, avanza bien.', createdAt: new Date().toISOString() }
             ],
+            createdAt: new Date().toISOString()
+          }
+        ]
+      },
+      {
+        id: 'tree-innovacion-tendencias',
+        name: 'Árbol Innovación & Tendencias',
+        team: 'Innovación',
+        useCustomCategories: false,
+        categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+        ideas: [
+          {
+            id: 'demo-trend-1',
+            category: 'spontaneous',
+            nodeId: 'center-top',
+            anchorCorner: 'bottom-left',
+            title: 'Banca embebida (Embedded Finance) en comercios aliados',
+            description: 'Tendencia del sector: ofrecer productos financieros (crédito, seguros, cuentas) directamente dentro de plataformas de terceros (e-commerce, ERPs de pymes) en vez de solo en el canal propio del banco.',
+            author: 'Equipo Innovación',
+            dept: 'Innovación',
+            hearts: 12,
+            stars: 8,
+            status: 'evaluacion',
+            owner: 'Equipo Innovación',
+            impact: 'alto',
+            effort: 'alto',
+            businessArea: 'Nuevos Negocios',
+            comments: [],
             createdAt: new Date().toISOString()
           }
         ]
@@ -2695,6 +2754,107 @@
       }).join('');
     }
 
+    // Tendencias en Vivo: búsqueda en la API pública de Hacker News (Algolia, sin clave, con CORS)
+    // para inspirar nuevas ideas con lo que se está discutiendo hoy en tecnología/fintech.
+    let trendsCache = {};
+    let trendsRequestId = 0;
+
+    async function searchTrends(query) {
+      const list = document.getElementById('trendsResultsList');
+      const searchBtn = document.getElementById('trendsSearchBtn');
+      const term = (query || '').trim();
+
+      if (!term) {
+        list.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">Escribe una palabra clave para buscar tendencias.</div>`;
+        return;
+      }
+
+      const requestId = ++trendsRequestId;
+      searchBtn.disabled = true;
+      list.innerHTML = `
+        <div class="text-center text-xs text-slate-500 py-8 flex flex-col items-center gap-2">
+          <i class="fa-solid fa-circle-notch fa-spin text-emerald-400"></i>
+          Buscando tendencias para "${escapeHtml(term)}"...
+        </div>
+      `;
+
+      try {
+        const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(term)}&tags=story&hitsPerPage=12`;
+        const response = await fetch(url);
+        if (requestId !== trendsRequestId) return; // llegó una búsqueda más nueva mientras esperábamos
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        const data = await response.json();
+        const hits = (data.hits || []).filter(h => h.title);
+
+        trendsCache = {};
+        hits.forEach(h => { trendsCache[h.objectID] = h; });
+
+        renderTrendsList(hits, term);
+      } catch (err) {
+        if (requestId !== trendsRequestId) return;
+        console.error('Error buscando tendencias:', err);
+        list.innerHTML = `
+          <div class="text-center text-xs text-rose-400 py-8 space-y-1.5">
+            <i class="fa-solid fa-triangle-exclamation block text-base"></i>
+            <p>No se pudo conectar con la API de tendencias.</p>
+            <p class="text-slate-500">Revisa tu conexión e intenta de nuevo.</p>
+          </div>
+        `;
+      } finally {
+        if (requestId === trendsRequestId) searchBtn.disabled = false;
+      }
+    }
+
+    function renderTrendsList(hits, term) {
+      const list = document.getElementById('trendsResultsList');
+
+      if (hits.length === 0) {
+        list.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">Sin resultados para "${escapeHtml(term)}". Prueba con otra palabra clave.</div>`;
+        return;
+      }
+
+      list.innerHTML = hits.map(hit => {
+        let domain = '';
+        try { domain = hit.url ? new URL(hit.url).hostname.replace('www.', '') : 'news.ycombinator.com'; } catch (e) { domain = ''; }
+        const dateLabel = hit.created_at ? new Date(hit.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+        return `
+          <div class="glass-card p-3 rounded-xl border-l-2 border-amber-500/60 space-y-1.5">
+            <a href="${escapeHtml(hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`)}" target="_blank" rel="noopener noreferrer" class="text-xs font-medium text-white hover:text-emerald-300 transition leading-snug line-clamp-2 block">
+              ${escapeHtml(hit.title)}
+            </a>
+            <div class="flex items-center gap-2 text-[10px] text-slate-500">
+              ${domain ? `<span class="truncate max-w-[110px]"><i class="fa-solid fa-link text-[9px] mr-1"></i>${escapeHtml(domain)}</span>` : ''}
+              <span class="ml-auto flex items-center gap-1 shrink-0"><i class="fa-solid fa-arrow-up text-[9px]"></i>${hit.points ?? 0}</span>
+              <span class="flex items-center gap-1 shrink-0"><i class="fa-solid fa-comment text-[9px]"></i>${hit.num_comments ?? 0}</span>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[9px] text-slate-600">${escapeHtml(dateLabel)}</span>
+              <button onclick="convertTrendToIdea('${hit.objectID}')" type="button" class="px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition flex items-center gap-1">
+                <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> Convertir en idea
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.convertTrendToIdea = function(objectID) {
+      const hit = trendsCache[objectID];
+      if (!hit) return;
+
+      const defaultNode = BRANCH_NODES[Math.floor(Math.random() * BRANCH_NODES.length)];
+      openCreateModal('spontaneous', defaultNode.id, defaultNode.anchorCorner);
+
+      const link = hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`;
+      document.getElementById('ideaTitleInput').value = hit.title.slice(0, 140);
+      document.getElementById('ideaDescInput').value = `Tendencia detectada en Hacker News (${hit.points ?? 0} puntos, ${hit.num_comments ?? 0} comentarios). Fuente: ${link}`;
+
+      document.getElementById('trendsDrawer').classList.add('translate-x-full');
+      showToast('Tendencia cargada — revisa y publica la idea');
+    };
+
     // Matriz de Priorización: Me gusta (impacto, eje Y) x Es factible (eje X)
     function renderPriorityMatrix() {
       const activeTree = getActiveTree();
@@ -3457,6 +3617,24 @@
       });
       document.getElementById('closeLeaderboardBtn').addEventListener('click', () => {
         document.getElementById('leaderboardDrawer').classList.add('translate-x-full');
+      });
+
+      // Tendencias en Vivo
+      document.getElementById('toggleTrendsBtn').addEventListener('click', () => {
+        document.getElementById('trendsDrawer').classList.remove('translate-x-full');
+        searchTrends(document.getElementById('trendsSearchInput').value);
+      });
+      document.getElementById('closeTrendsBtn').addEventListener('click', () => {
+        document.getElementById('trendsDrawer').classList.add('translate-x-full');
+      });
+      document.getElementById('trendsSearchBtn').addEventListener('click', () => {
+        searchTrends(document.getElementById('trendsSearchInput').value);
+      });
+      document.getElementById('trendsSearchInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchTrends(document.getElementById('trendsSearchInput').value);
+        }
       });
 
       // Datos para decisión: colapsar/expandir
