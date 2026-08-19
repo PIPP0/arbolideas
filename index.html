@@ -1351,6 +1351,26 @@
       return idea;
     }
 
+    // Asigna una posición de sub-rama FIJA y permanente a cada idea (idea.stackIndex),
+    // en vez de recalcularla dinámicamente según el orden del array en cada render.
+    // Así, borrar/filtrar/agregar ideas en un nodo no mueve de lugar a sus tarjetas hermanas:
+    // cada tarjeta conserva su posición una vez asignada.
+    function assignStackIndexes(ideas) {
+      const maxIndexPerNode = {};
+      ideas.forEach(idea => {
+        if (typeof idea.stackIndex === 'number') {
+          maxIndexPerNode[idea.nodeId] = Math.max(maxIndexPerNode[idea.nodeId] ?? -1, idea.stackIndex);
+        }
+      });
+      ideas.forEach(idea => {
+        if (typeof idea.stackIndex !== 'number') {
+          const next = (maxIndexPerNode[idea.nodeId] ?? -1) + 1;
+          idea.stackIndex = next;
+          maxIndexPerNode[idea.nodeId] = next;
+        }
+      });
+    }
+
     const INITIAL_IDEAS = [
       {
         id: 'demo-1',
@@ -1629,6 +1649,7 @@
             tree.ideas = [];
           }
           tree.ideas.forEach(normalizeIdeaFields);
+          assignStackIndexes(tree.ideas);
         });
 
         const urlTreeId = getTreeIdFromUrl();
@@ -2158,6 +2179,10 @@
       connectorsGroup.innerHTML = '';
       if (dynamicSubBranchesGroup) dynamicSubBranchesGroup.innerHTML = '';
 
+      // Se asigna sobre TODAS las ideas del árbol (no solo las filtradas) para que la
+      // posición de cada tarjeta sea estable sin importar el filtro/búsqueda activos.
+      assignStackIndexes(activeTree.ideas);
+
       const filtered = activeTree.ideas.filter(idea => {
         const matchesCategory = (catSelected === 'all') || (idea.category === catSelected);
         const matchesSearch = idea.title.toLowerCase().includes(searchTerm) ||
@@ -2194,15 +2219,12 @@
         }
       });
 
-      const cardPlacementCounters = {};
-
       filtered.forEach(idea => {
         normalizeIdeaFields(idea);
         const nodeKey = idea.nodeId;
         const node = BRANCH_NODES.find(n => n.id === nodeKey) || BRANCH_NODES[0];
 
-        cardPlacementCounters[nodeKey] = (cardPlacementCounters[nodeKey] || 0) + 1;
-        const stackIndex = cardPlacementCounters[nodeKey] - 1;
+        const stackIndex = idea.stackIndex || 0;
 
         const cat = categories[idea.category] || Object.values(categories)[0];
         const color = cat.colorHex || '#10b981';
@@ -2454,6 +2476,11 @@
 
             const bestCorner = getClosestCorner(finalLeft, finalTop, targetNode.x, targetNode.y, cardWidth, cardHeight);
 
+            if (idea.nodeId !== targetNode.id) {
+              // Cambió de rama: libera su slot fijo anterior para que le asignen uno nuevo
+              // en el nodo de destino (sin chocar con las tarjetas que ya están ahí).
+              delete idea.stackIndex;
+            }
             idea.nodeId = targetNode.id;
             idea.anchorCorner = bestCorner.name;
 
