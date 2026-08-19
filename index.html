@@ -1312,6 +1312,7 @@
     let userVotes = {};
     let activeDraggedCard = null;
     let expandedCardComments = new Set();
+    let expandedCardDescriptions = new Set();
 
     // Configuración Global de Apariencia
     let appConfig = {
@@ -2316,6 +2317,7 @@
         const color = cat.colorHex || '#10b981';
         const statusCfg = getStatusConfig(idea.status);
         const isCommentsExpanded = expandedCardComments.has(idea.id);
+        const isDescExpanded = expandedCardDescriptions.has(idea.id);
 
         const cornerName = idea.anchorCorner || node.anchorCorner || 'bottom-right';
 
@@ -2397,8 +2399,9 @@
             </span>
           </div>
 
-          <h4 class="font-semibold text-slate-100 text-xs leading-snug line-clamp-2 mb-1">${escapeHtml(idea.title)}</h4>
-          <p class="text-[11px] text-slate-400 line-clamp-2 mb-2 leading-relaxed">${escapeHtml(idea.description)}</p>
+          <h4 class="font-semibold text-slate-100 text-xs leading-snug ${isDescExpanded ? '' : 'line-clamp-2'} mb-1">${escapeHtml(idea.title)}</h4>
+          <p class="text-[11px] text-slate-400 ${isDescExpanded ? '' : 'line-clamp-2'} mb-1 leading-relaxed">${escapeHtml(idea.description)}</p>
+          ${(idea.description.length > 90 || idea.title.length > 50) ? `<button onclick="toggleCardDescription('${idea.id}', event)" type="button" class="text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 transition mb-2">${isDescExpanded ? 'Ver menos' : 'Ver más'}</button>` : `<div class="mb-2"></div>`}
 
           <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1.5 border-t border-slate-800/80">
             <span class="truncate max-w-[90px]" title="${escapeHtml(idea.author)} - ${escapeHtml(idea.dept)}">
@@ -2661,6 +2664,16 @@
         expandedCardComments.delete(ideaId);
       } else {
         expandedCardComments.add(ideaId);
+      }
+      renderTreeCards();
+    };
+
+    window.toggleCardDescription = function(ideaId, event) {
+      if (event) event.stopPropagation();
+      if (expandedCardDescriptions.has(ideaId)) {
+        expandedCardDescriptions.delete(ideaId);
+      } else {
+        expandedCardDescriptions.add(ideaId);
       }
       renderTreeCards();
     };
