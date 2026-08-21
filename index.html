@@ -3747,12 +3747,13 @@
       const zoomText = document.getElementById('zoomLevelText');
       const canvasContainer = document.getElementById('canvasContainer');
       const treeViewport = document.getElementById('treeViewport');
+      let userTookControlOfZoom = false;
 
       function updateTransform(disableTransition = false) {
         if (disableTransition) {
           treeViewport.style.transition = 'none';
         } else {
-          treeViewport.style.transition = 'transform 0.15s ease-out';
+          treeViewport.style.transition = 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)';
         }
         treeViewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
         if (zoomText) {
@@ -3765,34 +3766,64 @@
         updateTransform(false);
       }
 
+      // Ajusta el zoom para que el árbol (1400px de ancho) quepa completo en el
+      // contenedor visible, y centra el desplazamiento. Es el estado por defecto
+      // al cargar y lo que hace el botón de "Centrar Árbol".
+      function fitTreeToContainer() {
+        const rect = canvasContainer.getBoundingClientRect();
+        const padding = 64;
+        const fitByWidth = (rect.width - padding) / 1400;
+        const fitByHeight = (rect.height - padding) / 900;
+        zoomLevel = Math.max(0.3, Math.min(2.5, Math.min(fitByWidth, fitByHeight)));
+        panX = 0;
+        panY = 0;
+        updateTransform(false);
+      }
+
       if (zoomInBtn) {
         zoomInBtn.onclick = (e) => {
           e.stopPropagation();
-          setZoom(zoomLevel + 0.2);
+          userTookControlOfZoom = true;
+          setZoom(zoomLevel + 0.08);
         };
       }
 
       if (zoomOutBtn) {
         zoomOutBtn.onclick = (e) => {
           e.stopPropagation();
-          setZoom(zoomLevel - 0.2);
+          userTookControlOfZoom = true;
+          setZoom(zoomLevel - 0.08);
         };
       }
 
       if (zoomResetBtn) {
         zoomResetBtn.onclick = (e) => {
           e.stopPropagation();
-          zoomLevel = 1;
-          panX = 0;
-          panY = 0;
-          updateTransform(false);
+          userTookControlOfZoom = true;
+          fitTreeToContainer();
         };
       }
 
+      // Zoom con scroll/trackpad centrado en el cursor: el punto bajo el mouse
+      // se mantiene fijo en pantalla, en vez de saltar hacia el centro del árbol.
       canvasContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-        setZoom(zoomLevel * zoomFactor);
+        userTookControlOfZoom = true;
+        const zoomFactor = e.deltaY < 0 ? 1.035 : 0.965;
+        const newZoom = Math.max(0.3, Math.min(2.5, zoomLevel * zoomFactor));
+        if (newZoom === zoomLevel) return;
+
+        const rect = treeViewport.getBoundingClientRect();
+        const ratioX = (e.clientX - rect.left) / rect.width;
+        const ratioY = (e.clientY - rect.top) / rect.height;
+        const scaleChange = newZoom / zoomLevel;
+        const dw = rect.width * (scaleChange - 1);
+        const dh = rect.height * (scaleChange - 1);
+
+        panX += dw * (0.5 - ratioX);
+        panY += dh * (0.5 - ratioY);
+        zoomLevel = newZoom;
+        updateTransform(true);
       }, { passive: false });
 
       let isPanning = false;
@@ -3801,6 +3832,7 @@
 
       canvasContainer.addEventListener('mousedown', (e) => {
         if (e.target.closest('.glass-card') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+        userTookControlOfZoom = true;
         isPanning = true;
         startX = e.clientX - panX;
         startY = e.clientY - panY;
@@ -3824,6 +3856,7 @@
       let touchStartDist = null;
 
       canvasContainer.addEventListener('touchstart', (e) => {
+        userTookControlOfZoom = true;
         if (e.touches.length === 1) {
           if (e.target.closest('.glass-card') || e.target.closest('button')) return;
           isPanning = true;
@@ -3849,7 +3882,8 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const factor = currentDist / touchStartDist;
-          setZoom(zoomLevel * factor);
+          zoomLevel = Math.max(0.3, Math.min(2.5, zoomLevel * factor));
+          updateTransform(true);
           touchStartDist = currentDist;
         }
       }, { passive: true });
@@ -3859,7 +3893,24 @@
         touchStartDist = null;
       });
 
-      updateTransform(false);
+      // Se usa ResizeObserver (en vez de adivinar con rAF/timeouts) para detectar
+      // el momento real en que el contenedor alcanza su tamaño final de layout —
+      // al cargar, el CSS de Tailwind (inyectado vía CDN) puede tardar en aplicarse
+      // y el contenedor pasar por anchos intermedios antes de llegar a su tamaño
+      // final — en vez de adivinar cuándo terminó, se recalcula en cada cambio de
+      // tamaño hasta que el usuario interactúa manualmente con el zoom/pan
+      // (userTookControlOfZoom), momento en que se deja de pisar su ajuste.
+      const initialFitObserver = new ResizeObserver(() => {
+        if (userTookControlOfZoom) {
+          initialFitObserver.disconnect();
+          return;
+        }
+        const rect = canvasContainer.getBoundingClientRect();
+        if (rect.width > 100 && rect.height > 100) {
+          fitTreeToContainer();
+        }
+      });
+      initialFitObserver.observe(canvasContainer);
     }
 
     function setupEventListeners() {
